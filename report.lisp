@@ -240,7 +240,7 @@ code {
      <header>
        <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
          <div class="container-fluid" style="margin-left: 1rem; margin-right: 1rem;">
-           <a class="navbar-brand" href="https://github.com/open-scanify/open-scanify">Scandy</a>
+           <a class="navbar-brand" href="https://github.com/open-scanify/open-scanify">scandy</a>
          </div>
        </nav>
      </header>
@@ -251,8 +251,8 @@ code {
              ,@(progn children)
              <hr/>
              Scandy is brought to you by Anthony Green <a href="mailto:green@moxielogic.com" >&lt;green@moxielogic.com&gt</a>
-             and is available in source form under the terms of the AGPLv3 license from
-             <a href="https://github.com/atgreen/open-scanalysis" > https://github.com/atgreen/open-scanalysis </a>.
+             and is available in source form under the terms of the MIT license from
+             <a href="https://github.com/atgreen/scandy" > https://github.com/atgreen/scandy</a>.
            </div>
          </div>
        </main>
@@ -377,15 +377,15 @@ don't mention RHEL 8.  Here's the context for your analysis:
        (trivy-json
          (json:decode-json-from-string (uiop:read-file-string trivy-filename))))
 
-  (let ((vulns (cdr (assoc :*VULNERABILITIES (car (cdr (assoc :*RESULTS trivy-json)))))))
-    (dolist (vuln-json vulns)
-      (let ((vuln (make-instance 'trivy-vulnerability :json vuln-json)))
-        (push vuln (gethash (slot-value vuln 'id) vuln-table)))))
-
   (let ((vulns (cdr (assoc :MATCHES grype-json))))
     (dolist (vuln-json vulns)
       (let ((vuln (make-instance 'grype-vulnerability :json vuln-json)))
         (push vuln (gethash (id vuln) vuln-table)))))
+
+  (let ((vulns (cdr (assoc :*VULNERABILITIES (car (cdr (assoc :*RESULTS trivy-json)))))))
+    (dolist (vuln-json vulns)
+      (let ((vuln (make-instance 'trivy-vulnerability :json vuln-json)))
+        (push vuln (gethash (slot-value vuln 'id) vuln-table)))))
 
   (let ((ordered-vulns
           (let (vulns)
@@ -402,15 +402,16 @@ don't mention RHEL 8.  Here's the context for your analysis:
                                             :if-does-not-exist :create)
       (markup:write-html-to-stream
        <page-template title="scandy">
+       <br>
        <h1>,(progn image-name)</h1>
        <h2>With updates as of ,(local-time:format-timestring nil (local-time:now) :format local-time:+rfc-1123-format+) </h2>
        <br>
        <table class="fold-table" id="results">
        <markup:merge-tag>
-       <tr><th>ID</th><th>Component</th><th>Grype Severity</th><th>Trivy Severity</th></tr>
+       <tr><th>ID</th><th>Component</th><th>Trivy Severity</th><th>Grype Severity</th></tr>
        ,@(mapcar (lambda (vpair)
                    <markup:merge-tag>
-                   <tr class="view"><td> ,(id (car vpair)) </td><td>,(component (car vpair))</td><td> ,(grype-severity vpair) </td><td> ,(trivy-severity vpair) </td> </tr>
+                   <tr class="view"><td> ,(id (car vpair)) </td><td>,(component (car vpair))</td><td> ,(trivy-severity vpair) </td><td> ,(grype-severity vpair) </td> </tr>
                    <tr class="fold"><td colspan="4">
                    <div>
                    <div>
