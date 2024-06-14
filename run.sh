@@ -62,9 +62,9 @@ EOF
     sbcl --load report.lisp $(pwd)/_site/${IMG}.html ${SCANDIR}/grype/* ${SCANDIR}/trivy/* ${IMAGE}
 
     (cd ${WORKDIR};
-     tar cvfz ${IMG}-scanalysis.tar.gz * ;
-     oras push ghcr.io/open-scanalysis/${IMG}:${VERSION} ${IMG}-scanalysis.tar.gz:application/vnd.uknown/layer.v1+gzip ;
-     oras tag ghcr.io/open-scanalysis/${IMG}:${VERSION} latest
+     tar cvfz ${IMG}-scandy.tar.gz * ;
+     oras push ghcr.io/atgreen/${IMG}:${VERSION} ${IMG}-scandy.tar.gz:application/vnd.uknown/layer.v1+gzip ;
+     oras tag ghcr.io/atgreen/${IMG}:${VERSION} latest
 
      rm -rf *
     )
