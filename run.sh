@@ -42,6 +42,7 @@ for IMAGE in registry.access.redhat.com/ubi9 \
                  registry.access.redhat.com/ubi9/python-39 \
                  registry.access.redhat.com/ubi9/python-311 \
                  registry.access.redhat.com/ubi9/python-312 \
+                 registry.redhat.io/ocp-tools-4/jenkins-rhel8 \
                  registry.redhat.io/jboss-eap-7/eap74-openjdk11-runtime-openshift-rhel8; do
 
     SCANDIR=${WORKDIR}/$(echo ${IMAGE} | sed -e 's/regi.*\///g')
