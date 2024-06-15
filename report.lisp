@@ -228,6 +228,12 @@ tr:nth-child(4n-2) {
     background: #eee;
 }
 
+.no-wrap {
+  white-space: nowrap;
+  word-break: keep-all;
+  overflow-wrap: normal;
+}
+
 .footer {
   position: absolute;
   bottom: 0;
@@ -485,7 +491,7 @@ don't mention RHEL 8.  Here's the context for your analysis:
        <tr><th>ID</th><th>Age</th><th>Component</th><th>Trivy Severity</th><th>Grype Severity</th><th>Red Hat Severity</th></tr>
        ,@(mapcar (lambda (vpair)
                    <markup:merge-tag>
-                   <tr class="view"><td> ,(id (car vpair)) </td><td>
+                   <tr class="view"><td class="no-wrap"> ,(id (car vpair)) </td><td>
                    ,(let ((pdv (find-if (lambda (v) (published-date v)) vpair)))
                       (if pdv
                           (floor
