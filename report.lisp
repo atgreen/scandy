@@ -12,11 +12,11 @@
 (defclass vulnerabilty ()
   ((id :accessor id)
    (severity :accessor severity)
-   (component :accessor component)
+   (component :accessor component :initform nil)
    (title :accessor title)
    (published-date :accessor published-date :initform nil)
    (description :accessor description)
-   (references :accessor references)))
+   (references :accessor references :initform nil)))
 
 (defclass grype-vulnerability (vulnerabilty)
   ())
@@ -24,9 +24,18 @@
 (defclass trivy-vulnerability (vulnerabilty)
   (status))
 
+(defclass redhat-vulnerability (vulnerabilty)
+  ())
+
 (defun get-component (vlist)
   (let ((cv (find-if (lambda (v) (component v)) vlist)))
     (if cv (component cv) "?")))
+
+(defun capitalize-word (word)
+  "Capitalize the first letter of WORD and make the rest lower-case."
+  (concatenate 'string
+               (string-upcase (subseq word 0 1))
+               (string-downcase (subseq word 1))))
 
 (defmethod initialize-instance ((vuln grype-vulnerability) &key json)
   (call-next-method)
@@ -34,14 +43,14 @@
     (setf id (cdr (assoc :ID (cdr (assoc :VULNERABILITY json)))))
     (setf description (cdr (assoc :DESCRIPTION (cdr (assoc :VULNERABILITY json)))))
     (setf component (cdr (assoc :NAME (cdr (assoc :ARTIFACT json)))))
-    (setf severity (string-upcase (cdr (assoc :SEVERITY (cdr (assoc :VULNERABILITY json))))))
+    (setf severity (capitalize-word (cdr (assoc :SEVERITY (cdr (assoc :VULNERABILITY json))))))
     (setf references (cdr (assoc :URLS json)))))
 
 (defmethod initialize-instance ((vuln trivy-vulnerability) &key json)
   (call-next-method)
   (with-slots (id severity published-date component title description references status) vuln
     (setf id (cdr (assoc :*VULNERABILITY-+ID+ json)))
-    (setf severity (cdr (assoc :*SEVERITY json)))
+    (setf severity (capitalize-word (cdr (assoc :*SEVERITY json))))
     (setf status (cdr (assoc :*STATUS json)))
     (setf title (cdr (assoc :*TITLE json)))
     (when (assoc :*PUBLISHED-DATE json)
@@ -50,19 +59,26 @@
     (setf component (cdr (assoc :*PKG-NAME json)))
     (setf references (cdr (assoc :*REFERENCES json)))))
 
+(defmethod initialize-instance ((vuln redhat-vulnerability) &key json)
+  (call-next-method)
+  (with-slots (id severity published-date component) vuln
+    (setf id (cdr (assoc :NAME json)))
+    (setf severity (capitalize-word (cdr (assoc :THREAT--SEVERITY json))))
+    (setf references (cdr (assoc :REFERENCES json)))
+    (setf published-date (local-time:parse-timestring (cdr (assoc :PUBLIC--DATE json))))
+    (setf title (cdr (assoc :DESCRIPTION (cdr (assoc :BUGZILLA json)))))))
+
 (defun grype-severity (vulns)
-  (if (null vulns)
-      nil
-      (if (eq 'grype-vulnerability (type-of (car vulns)))
-          (severity (car vulns))
-          (grype-severity (cdr vulns)))))
+  (let ((v (find-if (lambda (v) (eq (type-of v) 'grype-vulnerability)) vulns)))
+    (when v (severity v))))
 
 (defun trivy-severity (vulns)
-  (if (null vulns)
-      nil
-      (if (eq 'trivy-vulnerability (type-of (car vulns)))
-          (severity (car vulns))
-          (trivy-severity (cdr vulns)))))
+  (let ((v (find-if (lambda (v) (eq (type-of v) 'trivy-vulnerability)) vulns)))
+    (when v (severity v))))
+
+(defun redhat-severity (vulns)
+  (let ((v (find-if (lambda (v) (eq (type-of v) 'redhat-vulnerability)) vulns)))
+    (when v (severity v))))
 
 (markup:deftag page-template (children &key title)
    <html>
@@ -93,16 +109,6 @@ html {
 body {
     padding-top: 65px;
     margin-bottom: 60px;
-}
-
-.rlgl-svg {
-    float: left;
-    width: 100%;
-    background-image: url(../images/rlgl.svg);
-    background-size: cover;
-    height: 0;
-    padding: 0; /* reset */
-    padding-bottom: 92%;
 }
 
 h1 {
@@ -289,17 +295,20 @@ code {
   </script>
   </html>)
 
-(defconstant +severity+ '("UNKNOWN" "LOW" "MEDIUM" "HIGH" "CRITICAL"))
+(defconstant +severity+ '("Unknown" "Low" "Medium" "Moderate" "High" "Important" "Critical"))
 
 (defun vuln< (v1 v2)
   "Sort vulnerabilities."
-  (let ((v1 (car v1))
-        (v2 (car v2)))
-    (let ((id1 (id v1))
-          (id2 (id v2)))
-      (print (severity v1))
-      (print (severity v2))
+  (let ((v1 (find-if (lambda (v) (eq (type-of v) 'trivy-vulnerability)) v1))
+        (v2 (find-if (lambda (v) (eq (type-of v) 'trivy-vulnerability)) v2)))
+    (print "---------------------------------")
+    (print v1)
+    (print v2)
+    (let ((id1 (and v1 (id v1)))
+          (id2 (and v2 (id v2))))
       (cond
+        ((or (null v1) (null v2))
+         v2)
         ((or (null (severity v1)) (null (severity v2)))
          (severity v2))
         ((not (equal (severity v1) (severity v2)))
@@ -313,6 +322,34 @@ code {
            (< n1 n2)))
         (t
          (string< id1 id2))))))
+
+(defun reference< (r1 r2)
+  (cond
+    ((or (search "access.redhat.com/security/cve" r1)
+         (search "access.redhat.com/security/cve" r2))
+     (search "access.redhat.com/security/cve" r1))
+    ((or (search "access.redhat.com/errata" r1)
+         (search "access.redhat.com/errata" r2))
+     (search "access.redhat.com/errata" r1))
+    ((or (search "nist.gov" r1)
+         (search "nist.gov" r2))
+     (search "nist.gov" r1))
+    ((or (search "cve.org" r1)
+         (search "cve.org" r2))
+     (search "cve.org" r1))
+    ((or (search "bugzilla" r1)
+         (search "bugzilla" r2))
+     (search "bugzilla" r1))
+    ((or (search "fedora" r1)
+         (search "fedora" r2))
+     (search "fedora" r1))
+    (t (string< r1 r2))))
+
+(defun collect-references (vulns)
+  (let ((refs))
+    (loop for v in vulns
+          do (setf refs (append refs (references v))))
+    (sort (remove-duplicates refs :test #'string=) 'reference<)))
 
 (defun describe-container (image)
   (cond
@@ -376,6 +413,16 @@ don't mention RHEL 8.  Here's the context for your analysis:
       (print e)
       nil)))
 
+(defun severity-style (severity)
+  (cond
+    ((equal severity "Critical")
+     "background-color: #ffcccc; border-top: 1px solid #eee;  border-bottom: 1px solid #eee;")
+    ((or (equal severity "High") (equal severity "Important"))
+     "background-color: #ffdab9; border-top: 1px solid #eee;  border-bottom: 1px solid #eee;")
+    ((or (equal severity "Medium") (equal severity "Moderate"))
+     "background-color: #ffffcc; border-top: 1px solid #eee;  border-bottom: 1px solid #eee;")
+    (t "")))
+
 (let* ((vuln-table (make-hash-table :test 'equal))
        (report-filename (first (uiop:command-line-arguments)))
        (grype-filename (second (uiop:command-line-arguments)))
@@ -394,13 +441,21 @@ don't mention RHEL 8.  Here's the context for your analysis:
   (let ((vulns (cdr (assoc :*VULNERABILITIES (car (cdr (assoc :*RESULTS trivy-json)))))))
     (dolist (vuln-json vulns)
       (let ((vuln (make-instance 'trivy-vulnerability :json vuln-json)))
-        (push vuln (gethash (slot-value vuln 'id) vuln-table)))))
+        (push vuln (gethash (id vuln) vuln-table)))))
+
+  ;; Create a Red Hat vulnerability record
+  (maphash (lambda (id vulns)
+             (handler-case
+                 (let* ((rhj (dex:get (format nil "https://access.redhat.com/hydra/rest/securitydata/cve/~A" id)))
+                        (rhl (json:decode-json-from-string rhj)))
+                   (push (make-instance 'redhat-vulnerability :json rhl) (gethash id vuln-table)))
+               (error (e)
+                 nil)))
+           vuln-table)
 
   (let ((ordered-vulns
           (let (vulns)
             (maphash (lambda (id vpair) (push vpair vulns)) vuln-table)
-            (print "==============================================")
-            (print vulns)
             (reverse (sort vulns 'vuln<)))))
 
     (print "==============================================")
@@ -417,7 +472,7 @@ don't mention RHEL 8.  Here's the context for your analysis:
        <br>
        <table class="fold-table" id="results">
        <markup:merge-tag>
-       <tr><th>ID</th><th>Age</th><th>Component</th><th>Trivy Severity</th><th>Grype Severity</th></tr>
+       <tr><th>ID</th><th>Age</th><th>Component</th><th>Trivy Severity</th><th>Grype Severity</th><th>Red Hat Severity</th></tr>
        ,@(mapcar (lambda (vpair)
                    <markup:merge-tag>
                    <tr class="view"><td> ,(id (car vpair)) </td><td>
@@ -429,18 +484,18 @@ don't mention RHEL 8.  Here's the context for your analysis:
                                   (published-date pdv)))
                               (* 60.0 60.0 24.0)))
                           "?"))
-                   </td><td>,(get-component vpair)</td><td> ,(trivy-severity vpair) </td><td> ,(grype-severity vpair) </td> </tr>
-                   <tr class="fold"><td colspan="4">
+                   </td><td>,(get-component vpair)</td><td style=(severity-style (trivy-severity vpair)) > ,(trivy-severity vpair) </td><td style=(severity-style (grype-severity vpair)) > ,(grype-severity vpair) </td><td style=(severity-style (redhat-severity vpair)) > ,(redhat-severity vpair) </td> </tr>
+                   <tr class="fold"><td colspan="6">
                    <div>
                    <div>
                    ,(progn (markup:unescaped (or (get-analysis (id (car vpair)) image-name) "")))
-                   <br>
                    </div>
+                   <h3>References:</h3>
                    <ul>
                    <markup:merge-tag>
                    ,@(mapcar (lambda (url)
                                <li><a href=url target="_blank"> ,(progn url) </a></li>)
-                             (references (car (last vpair))))
+                             (collect-references vpair))
                    </markup:merge-tag>
                    </ul>
                    </div>

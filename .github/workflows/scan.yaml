@@ -36,6 +36,7 @@ jobs:
           echo ${{ github.token }} | oras login ghcr.io -u ${{ github.actor }} --password-stdin
           mkdir ./_site
           ./run.sh
+          cp index.html ./_site
         shell: bash
       - name: Upload artifact
         # Automatically uploads an artifact from the './_site' directory by default
