@@ -35,6 +35,8 @@ jobs:
         run: |
           echo ${{ github.token }} | oras login ghcr.io -u ${{ github.actor }} --password-stdin
           mkdir ./_site
+          echo ${{ secrets.REDHAT_PASSWORD }} | docker login -u="${{ secrets.REDHAT_USERNAME }}" --password-stdin registry.redhat.io
+          echo ${{ secrets.REDHAT_PASSWORD }} | podman login -u="${{ secrets.REDHAT_USERNAME }}" --password-stdin registry.redhat.io
           ./run.sh
           cp index.html ./_site
         shell: bash

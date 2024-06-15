@@ -349,19 +349,23 @@ code {
   (let ((refs))
     (loop for v in vulns
           do (setf refs (append refs (references v))))
-    (sort (remove-duplicates refs :test #'string=) 'reference<)))
+    (sort (remove-duplicates refs :test #'string-equal) 'reference<)))
 
 (defun collect-components (vulns)
   (let ((components (loop for v in vulns
                           when (component v)
                             collect (component v))))
-    (sort (remove-duplicates components :test #'string=) 'string<)))
+    (sort (remove-duplicates components :test #'string-equal) 'string<)))
 
 (defun describe-container (image)
   (cond
     ((search "ubi8" image)
      "RHEL 8")
+    ((search "rhel8" image)
+     "RHEL 8")
     ((search "ubi9" image)
+     "RHEL 9")
+    ((search "rhel9" image)
      "RHEL 9")
     (t
      image)))
