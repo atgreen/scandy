@@ -351,6 +351,12 @@ code {
           do (setf refs (append refs (references v))))
     (sort (remove-duplicates refs :test #'string=) 'reference<)))
 
+(defun collect-components (vulns)
+  (let ((components (loop for v in vulns
+                          when (component v)
+                            collect (component v))))
+    (sort (remove-duplicates components :test #'string=) 'string<)))
+
 (defun describe-container (image)
   (cond
     ((search "ubi8" image)
@@ -484,7 +490,7 @@ don't mention RHEL 8.  Here's the context for your analysis:
                                   (published-date pdv)))
                               (* 60.0 60.0 24.0)))
                           "?"))
-                   </td><td>,(get-component vpair)</td><td style=(severity-style (trivy-severity vpair)) > ,(trivy-severity vpair) </td><td style=(severity-style (grype-severity vpair)) > ,(grype-severity vpair) </td><td style=(severity-style (redhat-severity vpair)) > ,(redhat-severity vpair) </td> </tr>
+                   </td><td>,(format nil "~{~A ~}" (collect-components vpair))</td><td style=(severity-style (trivy-severity vpair)) > ,(trivy-severity vpair) </td><td style=(severity-style (grype-severity vpair)) > ,(grype-severity vpair) </td><td style=(severity-style (redhat-severity vpair)) > ,(redhat-severity vpair) </td> </tr>
                    <tr class="fold"><td colspan="6">
                    <div>
                    <div>
