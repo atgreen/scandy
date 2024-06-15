@@ -14,15 +14,17 @@ trap cleanup EXIT
 function trivy_scan {
     # Perform trivy scans
     IMG=$(echo ${2} | sed 's/\//\-\-/g')
+    IMG=$(echo ${IMG} | sed 's/:/\-\-/g')
     mkdir -p ${1}/trivy
-    trivy -f json -o ${1}/trivy/${IMG}.json image ${2}:latest
+    trivy -f json -o ${1}/trivy/${IMG}.json image ${2}
 }
 
 function grype_scan {
     # Perform grype scans
     IMG=$(echo ${2} | sed 's/\//\-\-/g')
+    IMG=$(echo ${IMG} | sed 's/:/\-\-/g')
     mkdir -p ${1}/grype
-    grype -o json=${1}/grype/${IMG}.json ${2}:latest
+    grype -o json=${1}/grype/${IMG}.json ${2}
 }
 
 if ! test -f /usr/bin/sbcl; then
@@ -42,7 +44,7 @@ for IMAGE in registry.access.redhat.com/ubi9 \
                  registry.access.redhat.com/ubi9/python-39 \
                  registry.access.redhat.com/ubi9/python-311 \
                  registry.access.redhat.com/ubi9/python-312 \
-                 registry.redhat.io/ocp-tools-4/jenkins-rhel8 \
+                 registry.redhat.io/ocp-tools-4/jenkins-rhel8:v4.12.0-1716801209 \
                  registry.redhat.io/jboss-eap-7/eap74-openjdk11-runtime-openshift-rhel8; do
 
     SCANDIR=${WORKDIR}/$(echo ${IMAGE} | sed -e 's/regi.*\///g')
@@ -61,6 +63,7 @@ EOF
     grype_scan ${SCANDIR} ${IMAGE}-with-updates
 
     IMG=$(echo ${IMAGE}-with-updates | sed 's/\//\-\-/g')
+    IMG=$(echo ${IMG} | sed 's/:/\-\-/g')
     VERSION=$(date +%Y%m%d)
 
     sbcl --load report.lisp $(pwd)/_site/${IMG}.html ${SCANDIR}/grype/* ${SCANDIR}/trivy/* ${IMAGE}
