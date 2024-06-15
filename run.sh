@@ -25,10 +25,12 @@ function grype_scan {
     grype -o json=${1}/grype/${IMG}.json ${2}:latest
 }
 
-sudo apt update
-sudo apt install sbcl
-git clone https://github.com/ocicl/ocicl
-(cd ocicl; sbcl --load setup.lisp; ocicl setup > ~/.sbclrc)
+if ! test -f /usr/bin/sbcl; then
+  sudo apt update
+  sudo apt install sbcl
+  git clone https://github.com/ocicl/ocicl
+  (cd ocicl; sbcl --load setup.lisp; ocicl setup > ~/.sbclrc)
+fi
 
 for IMAGE in registry.access.redhat.com/ubi9 \
                  registry.access.redhat.com/ubi8 \

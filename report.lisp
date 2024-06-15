@@ -14,6 +14,7 @@
    (severity :accessor severity)
    (component :accessor component)
    (title :accessor title)
+   (published-date :accessor published-date :initform nil)
    (description :accessor description)
    (references :accessor references)))
 
@@ -23,22 +24,30 @@
 (defclass trivy-vulnerability (vulnerabilty)
   (status))
 
+(defun get-component (vlist)
+  (let ((cv (find-if (lambda (v) (component v)) vlist)))
+    (if cv (component cv) "?")))
+
 (defmethod initialize-instance ((vuln grype-vulnerability) &key json)
+  (call-next-method)
   (with-slots (id severity component description references) vuln
     (setf id (cdr (assoc :ID (cdr (assoc :VULNERABILITY json)))))
     (setf description (cdr (assoc :DESCRIPTION (cdr (assoc :VULNERABILITY json)))))
     (setf component (cdr (assoc :NAME (cdr (assoc :ARTIFACT json)))))
     (setf severity (string-upcase (cdr (assoc :SEVERITY (cdr (assoc :VULNERABILITY json))))))
-    (setf references (assoc :URLS json))))
+    (setf references (cdr (assoc :URLS json)))))
 
 (defmethod initialize-instance ((vuln trivy-vulnerability) &key json)
-  (with-slots (id severity component title description references status) vuln
+  (call-next-method)
+  (with-slots (id severity published-date component title description references status) vuln
     (setf id (cdr (assoc :*VULNERABILITY-+ID+ json)))
     (setf severity (cdr (assoc :*SEVERITY json)))
     (setf status (cdr (assoc :*STATUS json)))
     (setf title (cdr (assoc :*TITLE json)))
+    (when (assoc :*PUBLISHED-DATE json)
+      (setf published-date (local-time:parse-timestring (cdr (assoc :*PUBLISHED-DATE json)))))
     (setf description (cdr (assoc :*DESCRIPTION json)))
-    (setf component (cdr (assoc :*PACKAGE json)))
+    (setf component (cdr (assoc :*PKG-NAME json)))
     (setf references (cdr (assoc :*REFERENCES json)))))
 
 (defun grype-severity (vulns)
@@ -240,7 +249,7 @@ code {
      <header>
        <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
          <div class="container-fluid" style="margin-left: 1rem; margin-right: 1rem;">
-           <a class="navbar-brand" href="https://github.com/open-scanify/open-scanify">scandy</a>
+           <a class="navbar-brand" href="https://github.com/green/scandy">scandy</a>
          </div>
        </nav>
      </header>
@@ -314,7 +323,7 @@ code {
     (t
      image)))
 
-(defvar *count* 10)
+(defvar *count* 2)
 
 (defun get-analysis (id image)
   (when (eq 0 *count*)
@@ -408,10 +417,19 @@ don't mention RHEL 8.  Here's the context for your analysis:
        <br>
        <table class="fold-table" id="results">
        <markup:merge-tag>
-       <tr><th>ID</th><th>Component</th><th>Trivy Severity</th><th>Grype Severity</th></tr>
+       <tr><th>ID</th><th>Age</th><th>Component</th><th>Trivy Severity</th><th>Grype Severity</th></tr>
        ,@(mapcar (lambda (vpair)
                    <markup:merge-tag>
-                   <tr class="view"><td> ,(id (car vpair)) </td><td>,(component (car vpair))</td><td> ,(trivy-severity vpair) </td><td> ,(grype-severity vpair) </td> </tr>
+                   <tr class="view"><td> ,(id (car vpair)) </td><td>
+                   ,(let ((pdv (find-if (lambda (v) (published-date v)) vpair)))
+                      (if pdv
+                          (floor
+                           (/ (- (get-universal-time)
+                                 (local-time:timestamp-to-universal
+                                  (published-date pdv)))
+                              (* 60.0 60.0 24.0)))
+                          "?"))
+                   </td><td>,(get-component vpair)</td><td> ,(trivy-severity vpair) </td><td> ,(grype-severity vpair) </td> </tr>
                    <tr class="fold"><td colspan="4">
                    <div>
                    <div>
