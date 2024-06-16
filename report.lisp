@@ -5,7 +5,6 @@
 (asdf:load-system :completions)
 (asdf:load-system :local-time)
 (asdf:load-system :dbi)
-(asdf:load-system :md5)
 
 (setf completions:*debug-stream* uiop:*stdout*)
 
