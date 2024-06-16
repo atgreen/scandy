@@ -34,9 +34,10 @@ if ! test -f /usr/bin/sbcl; then
   (cd ocicl; sbcl --load setup.lisp; ocicl setup > ~/.sbclrc)
 fi
 
+env
 echo TESTING DB
-sbcl --non-interactive --eval "(asdf:load-system :dbi)" --eval "(defvar *db* (dbi:connect :sqlite3 :database-name \"~/foo.db\"))"
-ls -l ~/foo.db
+sbcl --non-interactive --eval "(asdf:load-system :dbi)" --eval "(defvar *db* (dbi:connect :sqlite3 :database-name \"foo.db\"))"
+ls -l foo.db
 
 for IMAGE in registry.access.redhat.com/ubi9 \
                  registry.access.redhat.com/ubi8 \
