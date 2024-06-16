@@ -19,7 +19,7 @@
 
 (unless (zs3:bucket-exists-p "scandy-db")
   (zs3:create-bucket "scandy-db"))
-(zs3:get-file "scandy-db" "scandy.db" *scandy-db*))
+(zs3:get-file "scandy-db" "scandy.db" *scandy-db*)
 
 (log:info "Pulled scandy.db from S3 storage")
 
