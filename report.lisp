@@ -28,7 +28,7 @@
     (setf *scandy-db* db-name)
     (zs3:get-file "scandy-db" "scandy.db" db-name)
     (log:info "Pulled scandy.db from S3 storage")
-    (setf *db* (dbi:connect :sqlite3 :database-name dn-name))
+    (setf *db* (dbi:connect :sqlite3 :database-name db-name))
     (log:info "Connected to database" *db*)
 
     ;; Create RH CVE table
