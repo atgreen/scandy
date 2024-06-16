@@ -8,20 +8,32 @@
 (asdf:load-system :ironclad)
 (asdf:load-system :zs3)
 (asdf:load-system :trivial-backtrace)
+(asdf:load-system :log4cl)
 
-(setf zs3:*credentials* (list (uiop:getenv "AWS_ACCESS_KEY")
-                              (uiop:getenv "AWS_SECRET_KEY")))
+(log:info "Loaded all systems")
 
-(defvar *scandy-db* (fifth (uiop:command-line-arguments)))
+(handler-case
+    (progn
+      (setf zs3:*credentials* (list (uiop:getenv "AWS_ACCESS_KEY")
+                                    (uiop:getenv "AWS_SECRET_KEY")))
 
-(unless (zs3:bucket-exists-p "scandy-db")
-  (zs3:create-bucket "scandy-db"))
-(zs3:get-file "scandy-db" "scandy.db" *scandy-db*)
+      (defvar *scandy-db* (fifth (uiop:command-line-arguments)))
+
+      (unless (zs3:bucket-exists-p "scandy-db")
+        (zs3:create-bucket "scandy-db"))
+      (zs3:get-file "scandy-db" "scandy.db" *scandy-db*))
+
+  (error (e)
+    (trivial-backtrace:print-backtrace e)))
+
+(log:info "Pulled scandy.db from S3 storage")
 
 (markup:enable-reader)
 
 ;; Connect to SQLite database
 (defvar *db* (dbi:connect :sqlite3 :database-name *scandy-db*))
+
+(log:info "Connected to database" *db*)
 
 ;; Create RH CVE table
 (dbi:do-sql *db* "
@@ -465,12 +477,15 @@ code {
 (defun get-redhat-security-data (cve-id)
   (let ((content (cadr (assoc :|content| (dbi:fetch-all (dbi:execute (dbi:prepare *db* "SELECT content from rhcve WHERE cve = ?")
                                                                      (list cve-id)))))))
+    (when content
+      (log:info "Found cached redhat security API response" cve-id))
     (if content
         content
         (let ((rhj (dex:get (format nil "https://access.redhat.com/hydra/rest/securitydata/cve/~A" cve-id))))
           (dbi:do-sql *db*
             "INSERT INTO rhcve (cve, content) VALUES (?, ?)"
             (list cve-id rhj))
+          (log:info "Caching redhat security API response" cve-id)
           rhj))))
 
 (defun string-digest (string)
@@ -486,13 +501,14 @@ code {
                                  (dbi:execute
                                   (dbi:prepare *db* "SELECT response from llm_cache WHERE prompt_hash = ?")
                                   (list md5)))))))
+    (when response
+      (log:info "Found cached LLM response" prompt-hash))
     (or response
         (let ((completer (make-instance 'completions:openai-completer
                                         :model "gpt-4o"
                                         :api-key (uiop:getenv "LLM_API_KEY"))))
           (let ((text (completions:get-completion completer prompt)))
-            (print "===============================================")
-            (print text)
+            (log:info "LLM response" text)
             (dbi:do-sql *db*
               "INSERT INTO llm_cache (prompt_hash, response) VALUES (?, ?)"
               (list md5 text))
@@ -566,6 +582,8 @@ don't mention RHEL 8.  Here's the context for your analysis:
        (trivy-json
          (json:decode-json-from-string (uiop:read-file-string trivy-filename))))
 
+  (log:info "STARTING ANALYSIS")
+
   (let ((vulns (cdr (assoc :MATCHES grype-json))))
     (dolist (vuln-json vulns)
       (let ((vuln (make-instance 'grype-vulnerability :json vuln-json)))
@@ -587,13 +605,12 @@ don't mention RHEL 8.  Here's the context for your analysis:
                  nil)))
            vuln-table)
 
+  (log:info "SORTING VULNS" (hash-table-count vuln-table))
+
   (let ((ordered-vulns
           (let (vulns)
             (maphash (lambda (id vpair) (push vpair vulns)) vuln-table)
             (reverse (sort vulns 'vuln<)))))
-
-    (print "==============================================")
-    (print ordered-vulns)
 
     (with-open-file (stream report-filename :direction :output
                                             :if-exists :supersede
@@ -645,5 +662,7 @@ don't mention RHEL 8.  Here's the context for your analysis:
 (dbi:disconnect *db*)
 
 (zs3:put-file *scandy-db* "scandy-db" "scandy.db")
+
+(log:info "Pushed scandy.db from S3 storage")
 
 (sb-ext:quit)
