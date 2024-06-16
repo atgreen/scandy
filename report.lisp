@@ -27,7 +27,8 @@
   (let ((db-name (fifth (uiop:command-line-arguments))))
     (setf *scandy-db* db-name)
     (zs3:get-file "scandy-db" "scandy.db" db-name)
-    (log:info "Pulled scandy.db from S3 storage")
+    (log:info "Pulled scandy.db from S3 storage" db-name)
+    (log:info "DB file exists?" (uiop:file-exists-p db-name))
     (handler-case
         (setf *db* (dbi:connect :sqlite3 :database-name db-name))
       (error (e)
