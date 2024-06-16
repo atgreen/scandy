@@ -29,7 +29,7 @@ function grype_scan {
 
 if ! test -f /usr/bin/sbcl; then
   sudo apt update
-  sudo apt install sbcl
+  sudo apt install sbcl sqlite3
   git clone https://github.com/ocicl/ocicl
   (cd ocicl; sbcl --load setup.lisp; ocicl setup > ~/.sbclrc)
 fi
@@ -66,7 +66,7 @@ EOF
     IMG=$(echo ${IMG} | sed 's/:/\-\-/g')
     VERSION=$(date +%Y%m%d)
 
-    sbcl --load report.lisp $(pwd)/_site/${IMG}.html ${SCANDIR}/grype/* ${SCANDIR}/trivy/* ${IMAGE} ~/scandy.db
+    sbcl --non-interactive --load report.lisp $(pwd)/_site/${IMG}.html ${SCANDIR}/grype/* ${SCANDIR}/trivy/* ${IMAGE} ~/scandy.db
 
     (cd ${WORKDIR};
      tar cvfz ${IMG}-scandy.tar.gz * ;
