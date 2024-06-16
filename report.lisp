@@ -482,7 +482,7 @@ code {
     (t
      image)))
 
-(defvar *count* 11)
+(defvar *count* 120)
 
 (defun get-redhat-security-data (cve-id)
   (let ((content (cadr (assoc :|content| (dbi:fetch-all (dbi:execute (dbi:prepare *db* "SELECT content from rhcve WHERE cve = ?")
