@@ -66,7 +66,7 @@ EOF
     IMG=$(echo ${IMG} | sed 's/:/\-\-/g')
     VERSION=$(date +%Y%m%d)
 
-    sbcl --load report.lisp $(pwd)/_site/${IMG}.html ${SCANDIR}/grype/* ${SCANDIR}/trivy/* ${IMAGE}
+    sbcl --load report.lisp $(pwd)/_site/${IMG}.html ${SCANDIR}/grype/* ${SCANDIR}/trivy/* ${IMAGE} ~/scandy.db
 
     (cd ${WORKDIR};
      tar cvfz ${IMG}-scandy.tar.gz * ;

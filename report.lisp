@@ -4,10 +4,29 @@
 (asdf:load-system :dexador)
 (asdf:load-system :completions)
 (asdf:load-system :local-time)
+(asdf:load-system :dbi)
+(asdf:load-system :md5)
 
 (setf completions:*debug-stream* uiop:*stdout*)
 
 (markup:enable-reader)
+
+;; Connect to SQLite database
+(defvar *db* (dbi:connect :sqlite3 :database-name (fifth (uiop:command-line-arguments))))
+
+;; Create RH CVE table
+(dbi:do-sql *db* "
+CREATE TABLE IF NOT EXISTS rhcve (
+    cve TEXT PRIMARY KEY,
+    content TEXT
+)")
+
+;; Create LLM cache
+(dbi:do-sql *db* "
+CREATE TABLE IF NOT EXISTS llm_cache (
+    prompt_hash TEXT PRIMARY KEY,
+    response TEXT
+)")
 
 (defclass vulnerabilty ()
   ((id :accessor id)
@@ -378,17 +397,24 @@ code {
 
 (defvar *count* 2)
 
+(defun get-redhat-security-data (cve-id)
+  (let ((content (cadr (assoc :|content| (dbi:fetch-all (dbi:execute (dbi:prepare *db* "SELECT content from rhcve WHERE cve = ?")
+                                                                     (list cve-id)))))))
+    (if content
+        content
+        (let ((rhj (dex:get (format nil "https://access.redhat.com/hydra/rest/securitydata/cve/~A" cve-id))))
+          (dbi:do-sql *db*
+            "INSERT INTO rhcve (cve, content) VALUES (?, ?)"
+            (list cve-id rhj))
+          (print "OK!!!!")
+          rhj))))
+
 (defun get-analysis (id image)
   (when (eq 0 *count*)
     (return-from get-analysis))
   (decf *count*)
   (handler-case
-      (let* ((rhj (dex:get (format nil "https://access.redhat.com/hydra/rest/securitydata/cve/~A" id)))
-             (rhl (json:decode-json-from-string rhj))
-             (completer (make-instance 'completions:openai-completer
-                                       :model "gpt-4o"
-                                       :api-key (uiop:getenv "LLM_API_KEY")))
-             (prompt (format nil "
+      (let ((prompt (format nil "
 You are a cyber security analyst.  My ~A container image was
 flagged with a CVE.  Respond with a short description of this
 CVE, and a risk assessment for containers based on this image.
@@ -419,15 +445,20 @@ that's relevant for my ~A container image.  So, for instance, if I have a RHEL 9
 don't mention RHEL 8.  Here's the context for your analysis:
 
 ~A~%" (describe-container image) rhj (describe-container image))))
-        (print prompt)
-        (print "--------------------------------------------------------")
-        (let ((text (completions:get-completion completer prompt)))
-          (print text)
-          (print "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
-          text))
-    (error (e)
-      (print e)
-      nil)))
+        (let* ((rhj (get-redhat-security-data id))
+               (rhl (json:decode-json-from-string rhj))
+               (completer (make-instance 'completions:openai-completer
+                                         :model "gpt-4o"
+                                         :api-key (uiop:getenv "LLM_API_KEY"))))
+          (print prompt)
+          (print "--------------------------------------------------------")
+          (let ((text (completions:get-completion completer prompt)))
+            (print text)
+            (print "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
+            text))
+        (error (e)
+               (print e)
+               nil))))
 
 (defun severity-style (severity)
   (cond
@@ -462,10 +493,11 @@ don't mention RHEL 8.  Here's the context for your analysis:
   ;; Create a Red Hat vulnerability record
   (maphash (lambda (id vulns)
              (handler-case
-                 (let* ((rhj (dex:get (format nil "https://access.redhat.com/hydra/rest/securitydata/cve/~A" id)))
+                 (let* ((rhj (get-redhat-security-data id))
                         (rhl (json:decode-json-from-string rhj)))
                    (push (make-instance 'redhat-vulnerability :json rhl) (gethash id vuln-table)))
                (error (e)
+                 (print e)
                  nil)))
            vuln-table)
 
@@ -524,4 +556,5 @@ don't mention RHEL 8.  Here's the context for your analysis:
        </page-template>
        stream))))
 
+(dbi:disconnect *db*)
 (sb-ext:quit)
