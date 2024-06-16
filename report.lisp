@@ -5,13 +5,22 @@
 (asdf:load-system :completions)
 (asdf:load-system :local-time)
 (asdf:load-system :dbi)
+(asdf:load-system :ironclad)
+(asdf:load-system :zs3)
 
-(setf completions:*debug-stream* uiop:*stdout*)
+(setf zs3:*credentials* (list (uiop:getenv "AWS_ACCESS_KEY")
+                              (uiop:getenv "AWS_SECRET_KEY")))
+
+(defvar *scandy-db* (fifth (uiop:command-line-arguments)))
+
+(unless (zs3:bucket-exists-p "scandy-db")
+  (zs3:create-bucket "scandy-db"))
+(zs3:get-file "scandy-db" "scandy.db" *scandy-db*)
 
 (markup:enable-reader)
 
 ;; Connect to SQLite database
-(defvar *db* (dbi:connect :sqlite3 :database-name (fifth (uiop:command-line-arguments))))
+(defvar *db* (dbi:connect :sqlite3 :database-name *scandy-db*))
 
 ;; Create RH CVE table
 (dbi:do-sql *db* "
@@ -31,13 +40,13 @@ CREATE TABLE IF NOT EXISTS llm_cache (
   ((id :accessor id)
    (severity :accessor severity)
    (component :accessor component :initform nil)
-   (title :accessor title)
+   (title :accessor title :initform nil)
    (published-date :accessor published-date :initform nil)
-   (description :accessor description)
+   (description :accessor description :initform nil)
    (references :accessor references :initform nil)))
 
 (defclass grype-vulnerability (vulnerabilty)
-  ())
+  ((location :accessor location :initform nil)))
 
 (defclass trivy-vulnerability (vulnerabilty)
   (status))
@@ -57,12 +66,22 @@ CREATE TABLE IF NOT EXISTS llm_cache (
 
 (defmethod initialize-instance ((vuln grype-vulnerability) &key json)
   (call-next-method)
-  (with-slots (id severity component description references) vuln
-    (setf id (cdr (assoc :ID (cdr (assoc :VULNERABILITY json)))))
+  (with-slots (id severity component location description references) vuln
+    (let ((gid (cdr (assoc :ID (cdr (assoc :VULNERABILITY json))))))
+      (if (string= "CVE-" (subseq gid 0 4))
+          (setf id gid)
+          (let* ((related (cadr (assoc :RELATED-VULNERABILITIES json)))
+                 (rid (cdr (assoc :ID related)))
+                 (urls (cdr (assoc :URLS related))))
+            (setf id (or rid gid))
+            (setf references urls))))
     (setf description (cdr (assoc :DESCRIPTION (cdr (assoc :VULNERABILITY json)))))
     (setf component (cdr (assoc :NAME (cdr (assoc :ARTIFACT json)))))
+    (when (not (string= "rpm" (cdr (assoc :TYPE (cdr (assoc :ARTIFACT json))))))
+      (setf location
+            (cdr (assoc :PATH (car (cdr (assoc :LOCATIONS (cdr (assoc :ARTIFACT json)))))))))
     (setf severity (capitalize-word (cdr (assoc :SEVERITY (cdr (assoc :VULNERABILITY json))))))
-    (setf references (cdr (assoc :URLS json)))))
+    (setf references (append references (cdr (assoc :URLS (cdr (assoc :VULNERABILITY json))))))))
 
 (defmethod initialize-instance ((vuln trivy-vulnerability) &key json)
   (call-next-method)
@@ -85,6 +104,52 @@ CREATE TABLE IF NOT EXISTS llm_cache (
     (setf references (cdr (assoc :REFERENCES json)))
     (setf published-date (local-time:parse-timestring (cdr (assoc :PUBLIC--DATE json))))
     (setf title (cdr (assoc :DESCRIPTION (cdr (assoc :BUGZILLA json)))))))
+
+(defmethod llm-context ((vuln vulnerabilty))
+  (if (string= (component vuln) "kernel-headers")
+      "This vulnerability is unlikely to be relevant for this container
+image, as it is associated with the kernel-headers package.  Kernel
+ CVEs taint the kernel-headers package when the real vulnerability
+ exists in the host kernel, not the container image."
+      ""))
+
+(defmethod llm-context ((vuln redhat-vulnerability))
+  (call-next-method)
+  (with-output-to-string (stream)
+    (when (title vuln)
+      (format stream "Title: ~A.~%" (title vuln)))
+    (when (description vuln)
+      (format stream "Description: ~A.~%" (description vuln)))
+    (when (component vuln)
+      (format stream "Component: ~A.~%" (component vuln)))
+    (format stream "Red Hat assigned this vulnerability a severity of ~A. ~%" (severity vuln))))
+
+(defmethod llm-context ((vuln grype-vulnerability))
+  (call-next-method)
+  (with-output-to-string (stream)
+    (when (title vuln)
+      (format stream "Title: ~A.~%" (title vuln)))
+    (when (description vuln)
+      (format stream "Description: ~A.~%" (description vuln)))
+    (when (component vuln)
+      (format stream "Component: ~A.~%" (component vuln)))
+    (when (location vuln)
+      (format stream "The grype container scanner believes that this vulnerability exists at this location: ~A.~%"
+              (location vuln)))
+    (format stream "The grype container scanner believes the severity for this vulnerability is ~A. ~%"
+            (severity vuln))))
+
+(defmethod llm-context ((vuln trivy-vulnerability))
+  (call-next-method)
+  (with-output-to-string (stream)
+    (when (title vuln)
+      (format stream "Title: ~A.~%" (title vuln)))
+    (when (description vuln)
+      (format stream "Description: ~A.~%" (description vuln)))
+    (when (component vuln)
+      (format stream "Component: ~A.~%" (component vuln)))
+    (format stream "The trivy container scanner believes the severity for this vulnerability is ~A. ~%"
+            (severity vuln))))
 
 (defun grype-severity (vulns)
   (let ((v (find-if (lambda (v) (eq (type-of v) 'grype-vulnerability)) vulns)))
@@ -279,7 +344,7 @@ code {
      <header>
        <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
          <div class="container-fluid" style="margin-left: 1rem; margin-right: 1rem;">
-           <a class="navbar-brand" href="https://github.com/green/scandy">scandy</a>
+           <a class="navbar-brand" href="https://github.com/atgreen/scandy">scandy</a>
          </div>
        </nav>
      </header>
@@ -325,9 +390,6 @@ code {
   "Sort vulnerabilities."
   (let ((v1 (find-if (lambda (v) (eq (type-of v) 'trivy-vulnerability)) v1))
         (v2 (find-if (lambda (v) (eq (type-of v) 'trivy-vulnerability)) v2)))
-    (print "---------------------------------")
-    (print v1)
-    (print v2)
     (let ((id1 (and v1 (id v1)))
           (id2 (and v2 (id v2))))
       (cond
@@ -369,8 +431,11 @@ code {
      (search "fedora" r1))
     (t (string< r1 r2))))
 
-(defun collect-references (vulns)
-  (let ((refs))
+(defun collect-references (id vulns)
+  ;; Force the redhat CVE link because sometimes it's missing from the
+  ;; metadata we pull.
+  (let ((refs (when (string= "CVE-" (subseq id 0 4))
+                (list (format nil "https://access.redhat.com/security/cve/~A" id)))))
     (loop for v in vulns
           do (setf refs (append refs (references v))))
     (sort (remove-duplicates refs :test #'string-equal) 'reference<)))
@@ -394,7 +459,7 @@ code {
     (t
      image)))
 
-(defvar *count* 2)
+(defvar *count* 11)
 
 (defun get-redhat-security-data (cve-id)
   (let ((content (cadr (assoc :|content| (dbi:fetch-all (dbi:execute (dbi:prepare *db* "SELECT content from rhcve WHERE cve = ?")
@@ -405,10 +470,37 @@ code {
           (dbi:do-sql *db*
             "INSERT INTO rhcve (cve, content) VALUES (?, ?)"
             (list cve-id rhj))
-          (print "OK!!!!")
           rhj))))
 
-(defun get-analysis (id image)
+(defun string-digest (string)
+  (ironclad:byte-array-to-hex-string
+   (ironclad:digest-sequence :md5
+                             (babel:string-to-octets string
+                                                     :encoding :utf-8))))
+
+(defun get-llm-response (prompt)
+  (let* ((md5 (string-digest prompt))
+         (response (cadr (assoc :|response|
+                                (dbi:fetch-all
+                                 (dbi:execute
+                                  (dbi:prepare *db* "SELECT response from llm_cache WHERE prompt_hash = ?")
+                                  (list md5)))))))
+    (or response
+        (let ((completer (make-instance 'completions:openai-completer
+                                        :model "gpt-4o"
+                                        :api-key (uiop:getenv "LLM_API_KEY"))))
+          (let ((text (completions:get-completion completer prompt)))
+            (print "===============================================")
+            (print text)
+            (dbi:do-sql *db*
+              "INSERT INTO llm_cache (prompt_hash, response) VALUES (?, ?)"
+              (list md5 text))
+            text)))))
+
+(defun format-llm-context (stream vuln a b)
+  (format stream "~A" (llm-context vuln)))
+
+(defun get-analysis (id image vulns)
   (when (eq 0 *count*)
     (return-from get-analysis))
   (decf *count*)
@@ -435,26 +527,20 @@ actual vulnerability:
     <li><strong>Mitigations:</strong> No direct mitigation provided by Red Hat. Regular updates and adherence to best practices for container security are recommended.</li>
   </ul>
 
-  <h3>Fix state:</h3>
-  <p><strong>Will not fix</strong>
+  <h3>Fix state: Will not fix</h3>
+
+If the context below includes location information, mention that location in your assessment.
 
 Here's some data for context.  Note that it includes the vulnerability ID that you
 should use in your risk assessment.  Also, you only need to provide a risk assessment
 that's relevant for my ~A container image.  So, for instance, if I have a RHEL 9 container image,
 don't mention RHEL 8.  Here's the context for your analysis:
 
-~A~%" (describe-container image) (get-redhat-security-data id) (describe-container image))))
-        (let* ((rhj (get-redhat-security-data id))
-               (rhl (json:decode-json-from-string rhj))
-               (completer (make-instance 'completions:openai-completer
-                                         :model "gpt-4o"
-                                         :api-key (uiop:getenv "LLM_API_KEY"))))
-          (print prompt)
-          (print "--------------------------------------------------------")
-          (let ((text (completions:get-completion completer prompt)))
-            (print text)
-            (print "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
-            text)))
+~A~%
+
+~{ ~/format-llm-context/ ~}~%" (describe-container image) (describe-container image) (get-redhat-security-data id) vulns)))
+        (print prompt)
+        (get-llm-response prompt))
     (error (e)
       (print e)
       nil)))
@@ -520,10 +606,10 @@ don't mention RHEL 8.  Here's the context for your analysis:
        <table class="fold-table" id="results">
        <markup:merge-tag>
        <tr><th>ID</th><th>Age</th><th>Component</th><th>Trivy Severity</th><th>Grype Severity</th><th>Red Hat Severity</th></tr>
-       ,@(mapcar (lambda (vpair)
+       ,@(mapcar (lambda (vulns)
                    <markup:merge-tag>
-                   <tr class="view"><td class="no-wrap"> ,(id (car vpair)) </td><td>
-                   ,(let ((pdv (find-if (lambda (v) (published-date v)) vpair)))
+                   <tr class="view"><td class="no-wrap"> ,(id (car vulns)) </td><td>
+                   ,(let ((pdv (find-if (lambda (v) (published-date v)) vulns)))
                       (if pdv
                           (floor
                            (/ (- (get-universal-time)
@@ -531,18 +617,18 @@ don't mention RHEL 8.  Here's the context for your analysis:
                                   (published-date pdv)))
                               (* 60.0 60.0 24.0)))
                           "?"))
-                   </td><td>,(format nil "~{~A ~}" (collect-components vpair))</td><td style=(severity-style (trivy-severity vpair)) > ,(trivy-severity vpair) </td><td style=(severity-style (grype-severity vpair)) > ,(grype-severity vpair) </td><td style=(severity-style (redhat-severity vpair)) > ,(redhat-severity vpair) </td> </tr>
+                   </td><td>,(format nil "~{~A ~}" (collect-components vulns))</td><td style=(severity-style (trivy-severity vulns)) > ,(trivy-severity vulns) </td><td style=(severity-style (grype-severity vulns)) > ,(grype-severity vulns) </td><td style=(severity-style (redhat-severity vulns)) > ,(redhat-severity vulns) </td> </tr>
                    <tr class="fold"><td colspan="6">
                    <div>
                    <div>
-                   ,(progn (markup:unescaped (or (get-analysis (id (car vpair)) image-name) "")))
+                   ,(progn (markup:unescaped (or (get-analysis (id (car vulns)) image-name vulns) "")))
                    </div>
                    <h3>References:</h3>
                    <ul>
                    <markup:merge-tag>
                    ,@(mapcar (lambda (url)
                                <li><a href=url target="_blank"> ,(progn url) </a></li>)
-                             (collect-references vpair))
+                             (collect-references (id (car vulns)) vulns))
                    </markup:merge-tag>
                    </ul>
                    </div>
@@ -556,4 +642,7 @@ don't mention RHEL 8.  Here's the context for your analysis:
        stream))))
 
 (dbi:disconnect *db*)
+
+(zs3:put-file *scandy-db* "scandy-db" "scandy.db")
+
 (sb-ext:quit)
