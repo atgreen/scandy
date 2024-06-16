@@ -15,34 +15,37 @@
 (setf zs3:*credentials* (list (uiop:getenv "AWS_ACCESS_KEY")
                               (uiop:getenv "AWS_SECRET_KEY")))
 
-(defvar *scandy-db* (fifth (uiop:command-line-arguments)))
+(defvar *scandy-db* )
+(defvar *db* nil)
 
 (unless (zs3:bucket-exists-p "scandy-db")
   (zs3:create-bucket "scandy-db"))
-(zs3:get-file "scandy-db" "scandy.db" *scandy-db*)
-
-(log:info "Pulled scandy.db from S3 storage")
 
 (markup:enable-reader)
 
-;; Connect to SQLite database
-(defvar *db* (dbi:connect :sqlite3 :database-name *scandy-db*))
+(defun get-db-connection ()
+  (let ((db-name (fifth (uiop:command-line-arguments))))
+    (setf *scandy-db* db-name)
+    (zs3:get-file "scandy-db" "scandy.db" db-name)
+    (log:info "Pulled scandy.db from S3 storage")
+    (setf *db* (dbi:connect :sqlite3 :database-name dn-name))
+    (log:info "Connected to database" *db*)
 
-(log:info "Connected to database" *db*)
-
-;; Create RH CVE table
-(dbi:do-sql *db* "
+    ;; Create RH CVE table
+    (dbi:do-sql *db* "
 CREATE TABLE IF NOT EXISTS rhcve (
     cve TEXT PRIMARY KEY,
     content TEXT
 )")
 
-;; Create LLM cache
-(dbi:do-sql *db* "
+    ;; Create LLM cache
+    (dbi:do-sql *db* "
 CREATE TABLE IF NOT EXISTS llm_cache (
     prompt_hash TEXT PRIMARY KEY,
     response TEXT
 )")
+
+    *db*))
 
 (defclass vulnerabilty ()
   ((id :accessor id)
@@ -576,6 +579,8 @@ don't mention RHEL 8.  Here's the context for your analysis:
          (json:decode-json-from-string (uiop:read-file-string grype-filename)))
        (trivy-json
          (json:decode-json-from-string (uiop:read-file-string trivy-filename))))
+
+  (get-db-connection)
 
   (log:info "STARTING ANALYSIS")
 
