@@ -505,12 +505,12 @@ code {
                                                      :encoding :utf-8))))
 
 (defun get-llm-response (prompt)
-  (let* ((md5 (string-digest prompt))
+  (let* ((prompt-hash (string-digest prompt))
          (response (cadr (assoc :|response|
                                 (dbi:fetch-all
                                  (dbi:execute
                                   (dbi:prepare *db* "SELECT response from llm_cache WHERE prompt_hash = ?")
-                                  (list md5)))))))
+                                  (list prompt-hash)))))))
     (when response
       (log:info "Found cached LLM response" prompt-hash))
     (or response
@@ -521,7 +521,7 @@ code {
             (log:info "LLM response" text)
             (dbi:do-sql *db*
               "INSERT INTO llm_cache (prompt_hash, response) VALUES (?, ?)"
-              (list md5 text))
+              (list prompt-hash text))
             text)))))
 
 (defun format-llm-context (stream vuln a b)
