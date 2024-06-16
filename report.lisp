@@ -454,10 +454,10 @@ don't mention RHEL 8.  Here's the context for your analysis:
           (let ((text (completions:get-completion completer prompt)))
             (print text)
             (print "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
-            text))
-        (error (e)
-               (print e)
-               nil))))
+            text)))
+    (error (e)
+      (print e)
+      nil)))
 
 (defun severity-style (severity)
   (cond
