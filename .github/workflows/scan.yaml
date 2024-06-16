@@ -32,6 +32,8 @@ jobs:
       - name: Generate scan results
         env:
           LLM_API_KEY: '${{ secrets.LLM_API_KEY }}'
+          AWS_ACCESS_KEY: '${{ secrets.AWS_ACCESS_KEY }}'
+          AWS_SECRET_KEY: '${{ secrets.AWS_SECRET_KEY }}'
         run: |
           echo ${{ github.token }} | oras login ghcr.io -u ${{ github.actor }} --password-stdin
           mkdir ./_site
