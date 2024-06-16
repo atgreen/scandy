@@ -28,22 +28,32 @@
     (setf *scandy-db* db-name)
     (zs3:get-file "scandy-db" "scandy.db" db-name)
     (log:info "Pulled scandy.db from S3 storage")
-    (setf *db* (dbi:connect :sqlite3 :database-name db-name))
+    (handler-case
+        (setf *db* (dbi:connect :sqlite3 :database-name db-name))
+      (error (e)
+        (trivial-backtrace:print-condition e t)))
     (log:info "Connected to database" *db*)
+    (terpri)
 
-    ;; Create RH CVE table
-    (dbi:do-sql *db* "
+    (handler-case
+        (progn
+          ;; Create RH CVE table
+          (dbi:do-sql *db* "
 CREATE TABLE IF NOT EXISTS rhcve (
     cve TEXT PRIMARY KEY,
     content TEXT
 )")
 
-    ;; Create LLM cache
-    (dbi:do-sql *db* "
+          ;; Create LLM cache
+          (dbi:do-sql *db* "
 CREATE TABLE IF NOT EXISTS llm_cache (
     prompt_hash TEXT PRIMARY KEY,
     response TEXT
-)")
+)"))
+      (error (e)
+        (trivial-backtrace:print-condition e t)))
+
+    (log:info "Validated databases")
 
     *db*))
 
