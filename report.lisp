@@ -12,19 +12,14 @@
 
 (log:info "Loaded all systems")
 
-(handler-case
-    (progn
-      (setf zs3:*credentials* (list (uiop:getenv "AWS_ACCESS_KEY")
-                                    (uiop:getenv "AWS_SECRET_KEY")))
+(setf zs3:*credentials* (list (uiop:getenv "AWS_ACCESS_KEY")
+                              (uiop:getenv "AWS_SECRET_KEY")))
 
-      (defvar *scandy-db* (fifth (uiop:command-line-arguments)))
+(defvar *scandy-db* (fifth (uiop:command-line-arguments)))
 
-      (unless (zs3:bucket-exists-p "scandy-db")
-        (zs3:create-bucket "scandy-db"))
-      (zs3:get-file "scandy-db" "scandy.db" *scandy-db*))
-
-  (error (e)
-    (trivial-backtrace:print-backtrace e)))
+(unless (zs3:bucket-exists-p "scandy-db")
+  (zs3:create-bucket "scandy-db"))
+(zs3:get-file "scandy-db" "scandy.db" *scandy-db*))
 
 (log:info "Pulled scandy.db from S3 storage")
 
