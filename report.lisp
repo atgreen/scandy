@@ -7,6 +7,7 @@
 (asdf:load-system :dbi)
 (asdf:load-system :ironclad)
 (asdf:load-system :zs3)
+(asdf:load-system :trivial-backtrace)
 
 (setf zs3:*credentials* (list (uiop:getenv "AWS_ACCESS_KEY")
                               (uiop:getenv "AWS_SECRET_KEY")))
@@ -542,7 +543,7 @@ don't mention RHEL 8.  Here's the context for your analysis:
         (print prompt)
         (get-llm-response prompt))
     (error (e)
-      (print e)
+      (trivial-backtrace:print-condition e t)
       nil)))
 
 (defun severity-style (severity)
@@ -582,7 +583,7 @@ don't mention RHEL 8.  Here's the context for your analysis:
                         (rhl (json:decode-json-from-string rhj)))
                    (push (make-instance 'redhat-vulnerability :json rhl) (gethash id vuln-table)))
                (error (e)
-                 (print e)
+                 (trivial-backtrace:print-condition e t)
                  nil)))
            vuln-table)
 
