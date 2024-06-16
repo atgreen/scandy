@@ -9,6 +9,7 @@
 (asdf:load-system :zs3)
 (asdf:load-system :trivial-backtrace)
 (asdf:load-system :log4cl)
+(asdf:load-system :iterate)
 
 (log:info "Loaded all systems")
 
@@ -16,7 +17,7 @@
                               (uiop:getenv "AWS_SECRET_KEY")))
 
 (defvar *scandy-db* )
-(defvar *db* nil)
+(defvar db nil)
 
 (unless (zs3:bucket-exists-p "scandy-db")
   (zs3:create-bucket "scandy-db"))
@@ -29,10 +30,10 @@
     (zs3:get-file "scandy-db" "scandy.db" db-name)
     (log:info "Pulled scandy.db from S3 storage" db-name)
     (log:info "DB file exists?" (uiop:file-exists-p db-name))
-    (handler-case
-        (setf *db* (dbi:connect :sqlite3 :database-name db-name))
-      (error (e)
-        (trivial-backtrace:print-condition e t)))
+    (setf *db* (handler-case
+                   (dbi:connect :sqlite3 :database-name db-name)
+                 (error (e)
+                   (trivial-backtrace:print-condition e t))))
     (log:info "Connected to database" *db*)
     (terpri)
 
