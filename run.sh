@@ -36,8 +36,8 @@ fi
 
 env
 echo TESTING DB
-sbcl --non-interactive --eval "(asdf:load-system :dbi)" --eval "(defvar *db* (dbi:connect :sqlite3 :database-name \"foo.db\"))"
-ls -l foo.db
+sbcl --non-interactive --eval "(asdf:load-system :dbi)" --eval "(defvar *db* (dbi:connect :sqlite3 :database-name \"${GITHUB_WORKSPACE}/foo.db\"))"
+ls -l ${GITHUB_WORKSPACE}/foo.db
 
 for IMAGE in registry.access.redhat.com/ubi9 \
                  registry.access.redhat.com/ubi8 \
@@ -71,7 +71,7 @@ EOF
     IMG=$(echo ${IMG} | sed 's/:/\-\-/g')
     VERSION=$(date +%Y%m%d)
 
-    sbcl --non-interactive --load report.lisp $(pwd)/_site/${IMG}.html ${SCANDIR}/grype/* ${SCANDIR}/trivy/* ${IMAGE} ~/scandy.db
+    sbcl --non-interactive --load report.lisp $(pwd)/_site/${IMG}.html ${SCANDIR}/grype/* ${SCANDIR}/trivy/* ${IMAGE} ${GITHUB_WORKSPACE}/scandy.db
 
     (cd ${WORKDIR};
      tar cvfz ${IMG}-scandy.tar.gz * ;

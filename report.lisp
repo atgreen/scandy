@@ -443,7 +443,7 @@ should use in your risk assessment.  Also, you only need to provide a risk asses
 that's relevant for my ~A container image.  So, for instance, if I have a RHEL 9 container image,
 don't mention RHEL 8.  Here's the context for your analysis:
 
-~A~%" (describe-container image) rhj (describe-container image))))
+~A~%" (describe-container image) (get-redhat-security-data id) (describe-container image))))
         (let* ((rhj (get-redhat-security-data id))
                (rhl (json:decode-json-from-string rhj))
                (completer (make-instance 'completions:openai-completer
