@@ -367,7 +367,7 @@ code {
      <header>
        <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
          <div class="container-fluid" style="margin-left: 1rem; margin-right: 1rem;">
-           <a class="navbar-brand" href="https://github.com/atgreen/scandy">scandy</a>
+           <a class="navbar-brand" href="https://atgreen.github.io/scandy/">scandy</a>
          </div>
        </nav>
      </header>
@@ -482,7 +482,7 @@ code {
     (t
      image)))
 
-(defvar *count* 250)
+(defvar *count* 2500)
 
 (defun get-redhat-security-data (cve-id)
   (let ((content (cadr (assoc :|content| (dbi:fetch-all (dbi:execute (dbi:prepare *db* "SELECT content from rhcve WHERE cve = ?")
