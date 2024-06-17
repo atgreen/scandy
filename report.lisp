@@ -410,7 +410,7 @@ code {
            <div class="col" >
              ,@(progn children)
              <hr/>
-             Scandy is brought to you by Anthony Green <a href="mailto:green@moxielogic.com" >&lt;green@moxielogic.com&gt</a>
+             Scandy is brought to you by <a href="https://linkedin.com/in/green">Anthony Green</a>
              and is available in source form under the terms of the MIT license from
              <a href="https://github.com/atgreen/scandy" > https://github.com/atgreen/scandy</a>.
            </div>
