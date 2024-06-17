@@ -1,17 +1,8 @@
-(asdf:load-system :cl-json)
-(asdf:load-system :markup)
-(asdf:load-system :cl-who)
-(asdf:load-system :dexador)
-(asdf:load-system :completions)
-(asdf:load-system :local-time)
-(asdf:load-system :dbi)
-(asdf:load-system :ironclad)
-(asdf:load-system :zs3)
-(asdf:load-system :trivial-backtrace)
-(asdf:load-system :log4cl)
-(asdf:load-system :iterate)
+(defpackage #:report
+  (:use #:cl)
+  (:export main))
 
-(log:info "Loaded all systems")
+(in-package :report)
 
 (setf zs3:*credentials* (list (uiop:getenv "AWS_ACCESS_KEY")
                               (uiop:getenv "AWS_SECRET_KEY")))
@@ -45,12 +36,17 @@ CREATE TABLE IF NOT EXISTS rhcve (
     cve TEXT PRIMARY KEY,
     content TEXT
 )")
-
           ;; Create LLM cache
           (dbi:do-sql *db* "
 CREATE TABLE IF NOT EXISTS llm_cache (
     prompt_hash TEXT PRIMARY KEY,
     response TEXT
+)")
+          ;; Create prompt log (for debugging)
+          (dbi:do-sql *db* "
+CREATE TABLE IF NOT EXISTS prompts (
+    prompt_hash TEXT PRIMARY KEY,
+    prompt TEXT
 )"))
       (error (e)
         (trivial-backtrace:print-condition e t)))
@@ -407,7 +403,7 @@ code {
   </script>
   </html>)
 
-(defconstant +severity+ '("Unknown" "Low" "Medium" "Moderate" "High" "Important" "Critical"))
+(defparameter +severity+ '("Unknown" "Low" "Medium" "Moderate" "High" "Important" "Critical"))
 
 (defun vuln< (v1 v2)
   "Sort vulnerabilities."
@@ -482,7 +478,7 @@ code {
     (t
      image)))
 
-(defvar *count* 2500)
+(defvar *count* 100)
 
 (defun get-redhat-security-data (cve-id)
   (let ((content (cadr (assoc :|content| (dbi:fetch-all (dbi:execute (dbi:prepare *db* "SELECT content from rhcve WHERE cve = ?")
@@ -511,26 +507,32 @@ code {
                                  (dbi:execute
                                   (dbi:prepare *db* "SELECT response from llm_cache WHERE prompt_hash = ?")
                                   (list prompt-hash)))))))
-    (when response
-      (log:info "Found cached LLM response" prompt-hash))
-    (or response
+    (if response
+        (progn
+          (log:info "Found cached LLM response" prompt-hash)
+          response)
         (let ((completer (make-instance 'completions:openai-completer
                                         :model "gpt-4o"
                                         :api-key (uiop:getenv "LLM_API_KEY"))))
+          (log:info "Querying LLM" prompt-hash)
+          ;; To protect against runaway LLM API usage
+          (when (eq 0 *count*)
+            (return-from get-llm-response))
+          (decf *count*)
           (let ((text (completions:get-completion completer prompt)))
             (log:info "LLM response" text)
             (dbi:do-sql *db*
               "INSERT INTO llm_cache (prompt_hash, response) VALUES (?, ?)"
               (list prompt-hash text))
+            (dbi:do-sql *db*
+              "INSERT INTO prompts (prompt_hash, prompt) VALUES (?, ?)"
+              (list prompt-hash prompt))
             text)))))
 
 (defun format-llm-context (stream vuln a b)
   (format stream "~A" (llm-context vuln)))
 
 (defun get-analysis (id image vulns)
-  (when (eq 0 *count*)
-    (return-from get-analysis))
-  (decf *count*)
   (handler-case
       (let ((prompt (format nil "
 You are a cyber security analyst.  My ~A container image was
@@ -565,8 +567,8 @@ don't mention RHEL 8.  Here's the context for your analysis:
 
 ~A~%
 
-~{ ~/format-llm-context/ ~}~%" (describe-container image) (describe-container image) (get-redhat-security-data id) vulns)))
-        (print prompt)
+~{ ~/report::format-llm-context/ ~}~%" (describe-container image) (describe-container image) (get-redhat-security-data id) vulns)))
+        (log:info prompt)
         (get-llm-response prompt))
     (error (e)
       (trivial-backtrace:print-condition e t)
@@ -582,99 +584,102 @@ don't mention RHEL 8.  Here's the context for your analysis:
      "background-color: #ffffcc; border-top: 1px solid #eee;  border-bottom: 1px solid #eee;")
     (t "")))
 
-(let* ((vuln-table (make-hash-table :test 'equal))
-       (report-filename (first (uiop:command-line-arguments)))
-       (grype-filename (second (uiop:command-line-arguments)))
-       (trivy-filename (third (uiop:command-line-arguments)))
-       (image-name (fourth (uiop:command-line-arguments)))
-       (grype-json
-         (json:decode-json-from-string (uiop:read-file-string grype-filename)))
-       (trivy-json
-         (json:decode-json-from-string (uiop:read-file-string trivy-filename))))
 
-  (get-db-connection)
+(defun main ()
 
-  (log:info "STARTING ANALYSIS")
+  (let* ((vuln-table (make-hash-table :test 'equal))
+         (report-filename (first (uiop:command-line-arguments)))
+         (grype-filename (second (uiop:command-line-arguments)))
+         (trivy-filename (third (uiop:command-line-arguments)))
+         (image-name (fourth (uiop:command-line-arguments)))
+         (grype-json
+           (json:decode-json-from-string (uiop:read-file-string grype-filename)))
+         (trivy-json
+           (json:decode-json-from-string (uiop:read-file-string trivy-filename))))
 
-  (let ((vulns (cdr (assoc :MATCHES grype-json))))
-    (dolist (vuln-json vulns)
-      (let ((vuln (make-instance 'grype-vulnerability :json vuln-json)))
-        (push vuln (gethash (id vuln) vuln-table)))))
+    (get-db-connection)
 
-  (let ((vulns (cdr (assoc :*VULNERABILITIES (car (cdr (assoc :*RESULTS trivy-json)))))))
-    (dolist (vuln-json vulns)
-      (let ((vuln (make-instance 'trivy-vulnerability :json vuln-json)))
-        (push vuln (gethash (id vuln) vuln-table)))))
+    (log:info "STARTING ANALYSIS")
 
-  ;; Create a Red Hat vulnerability record
-  (maphash (lambda (id vulns)
-             (handler-case
-                 (let* ((rhj (get-redhat-security-data id))
-                        (rhl (json:decode-json-from-string rhj)))
-                   (push (make-instance 'redhat-vulnerability :json rhl) (gethash id vuln-table)))
-               (error (e)
-                 (trivial-backtrace:print-condition e t)
-                 nil)))
-           vuln-table)
+    (let ((vulns (cdr (assoc :MATCHES grype-json))))
+      (dolist (vuln-json vulns)
+        (let ((vuln (make-instance 'grype-vulnerability :json vuln-json)))
+          (push vuln (gethash (id vuln) vuln-table)))))
 
-  (log:info "SORTING VULNS" (hash-table-count vuln-table))
+    (let ((vulns (cdr (assoc :*VULNERABILITIES (car (cdr (assoc :*RESULTS trivy-json)))))))
+      (dolist (vuln-json vulns)
+        (let ((vuln (make-instance 'trivy-vulnerability :json vuln-json)))
+          (push vuln (gethash (id vuln) vuln-table)))))
 
-  (let ((ordered-vulns
-          (let (vulns)
-            (maphash (lambda (id vpair) (push vpair vulns)) vuln-table)
-            (reverse (sort vulns 'vuln<)))))
+    ;; Create a Red Hat vulnerability record
+    (maphash (lambda (id vulns)
+               (handler-case
+                   (let* ((rhj (get-redhat-security-data id))
+                          (rhl (json:decode-json-from-string rhj)))
+                     (push (make-instance 'redhat-vulnerability :json rhl) (gethash id vuln-table)))
+                 (error (e)
+                   (trivial-backtrace:print-condition e t)
+                   nil)))
+             vuln-table)
 
-    (with-open-file (stream report-filename :direction :output
-                                            :if-exists :supersede
-                                            :if-does-not-exist :create)
-      (markup:write-html-to-stream
-       <page-template title="scandy">
-       <br>
-       <h1>,(progn image-name)</h1>
-       <h2>With updates as of ,(local-time:format-timestring nil (local-time:now) :format local-time:+rfc-1123-format+) </h2>
-       <br>
-       <table class="fold-table" id="results">
-       <markup:merge-tag>
-       <tr><th>ID</th><th>Age</th><th>Component</th><th>Trivy Severity</th><th>Grype Severity</th><th>Red Hat Severity</th></tr>
-       ,@(mapcar (lambda (vulns)
-                   <markup:merge-tag>
-                   <tr class="view"><td class="no-wrap"> ,(id (car vulns)) </td><td>
-                   ,(let ((pdv (find-if (lambda (v) (published-date v)) vulns)))
-                      (if pdv
-                          (floor
-                           (/ (- (get-universal-time)
-                                 (local-time:timestamp-to-universal
-                                  (published-date pdv)))
-                              (* 60.0 60.0 24.0)))
-                          "?"))
-                   </td><td>,(format nil "~{~A ~}" (collect-components vulns))</td><td style=(severity-style (trivy-severity vulns)) > ,(trivy-severity vulns) </td><td style=(severity-style (grype-severity vulns)) > ,(grype-severity vulns) </td><td style=(severity-style (redhat-severity vulns)) > ,(redhat-severity vulns) </td> </tr>
-                   <tr class="fold"><td colspan="6">
-                   <div>
-                   <div>
-                   ,(progn (markup:unescaped (or (get-analysis (id (car vulns)) image-name vulns) "")))
-                   </div>
-                   <h3>References:</h3>
-                   <ul>
-                   <markup:merge-tag>
-                   ,@(mapcar (lambda (url)
-                               <li><a href=url target="_blank"> ,(progn url) </a></li>)
-                             (collect-references (id (car vulns)) vulns))
-                   </markup:merge-tag>
-                   </ul>
-                   </div>
-                   </td></tr>
-                   </markup:merge-tag>
-                   )
-                 ordered-vulns)
-       </markup:merge-tag>
-       </table>
-       </page-template>
-       stream))))
+    (log:info "SORTING VULNS" (hash-table-count vuln-table))
 
-(dbi:disconnect *db*)
+    (let ((ordered-vulns
+            (let (vulns)
+              (maphash (lambda (id vpair) (push vpair vulns)) vuln-table)
+              (reverse (sort vulns 'vuln<)))))
 
-(zs3:put-file *scandy-db* "scandy-db" "scandy.db")
+      (with-open-file (stream report-filename :direction :output
+                                              :if-exists :supersede
+                                              :if-does-not-exist :create)
+        (markup:write-html-to-stream
+         <page-template title="scandy">
+         <br>
+         <h1>,(progn image-name)</h1>
+         <h2>With updates as of ,(local-time:format-timestring nil (local-time:now) :format local-time:+rfc-1123-format+) </h2>
+         <br>
+         <table class="fold-table" id="results">
+         <markup:merge-tag>
+         <tr><th>ID</th><th>Age</th><th>Component</th><th>Trivy Severity</th><th>Grype Severity</th><th>Red Hat Severity</th></tr>
+         ,@(mapcar (lambda (vulns)
+                     <markup:merge-tag>
+                     <tr class="view"><td class="no-wrap"> ,(id (car vulns)) </td><td>
+                     ,(let ((pdv (find-if (lambda (v) (published-date v)) vulns)))
+                        (if pdv
+                            (floor
+                             (/ (- (get-universal-time)
+                                   (local-time:timestamp-to-universal
+                                    (published-date pdv)))
+                                (* 60.0 60.0 24.0)))
+                            "?"))
+                     </td><td>,(format nil "~{~A ~}" (collect-components vulns))</td><td style=(severity-style (trivy-severity vulns)) > ,(trivy-severity vulns) </td><td style=(severity-style (grype-severity vulns)) > ,(grype-severity vulns) </td><td style=(severity-style (redhat-severity vulns)) > ,(redhat-severity vulns) </td> </tr>
+                     <tr class="fold"><td colspan="6">
+                     <div>
+                     <div>
+                     ,(progn (markup:unescaped (or (get-analysis (id (car vulns)) image-name vulns) "")))
+                     </div>
+                     <h3>References:</h3>
+                     <ul>
+                     <markup:merge-tag>
+                     ,@(mapcar (lambda (url)
+                                 <li><a href=url target="_blank"> ,(progn url) </a></li>)
+                               (collect-references (id (car vulns)) vulns))
+                     </markup:merge-tag>
+                     </ul>
+                     </div>
+                     </td></tr>
+                     </markup:merge-tag>
+                     )
+                   ordered-vulns)
+         </markup:merge-tag>
+         </table>
+         </page-template>
+         stream))))
 
-(log:info "Pushed scandy.db from S3 storage")
+  (dbi:disconnect *db*)
 
-(sb-ext:quit)
+  (zs3:put-file *scandy-db* "scandy-db" "scandy.db")
+
+  (log:info "Pushed scandy.db from S3 storage")
+
+  (sb-ext:quit))

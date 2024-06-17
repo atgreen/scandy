@@ -66,7 +66,7 @@ EOF
     IMG=$(echo ${IMG} | sed 's/:/\-\-/g')
     VERSION=$(date +%Y%m%d)
 
-    sbcl --non-interactive --load report.lisp $(pwd)/_site/${IMG}.html ${SCANDIR}/grype/* ${SCANDIR}/trivy/* ${IMAGE} ${GITHUB_WORKSPACE}/scandy.db || true
+    sbcl --non-interactive --eval "(asdf:load-system :report)" --eval "(report:main)" $(pwd)/_site/${IMG}.html ${SCANDIR}/grype/* ${SCANDIR}/trivy/* ${IMAGE} ${GITHUB_WORKSPACE}/scandy.db || true
 
     ls -l ${GITHUB_WORKSPACE}/scandy.db
 
