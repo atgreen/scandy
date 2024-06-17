@@ -32,8 +32,9 @@
 (setf zs3:*credentials* (list (uiop:getenv "AWS_ACCESS_KEY")
                               (uiop:getenv "AWS_SECRET_KEY")))
 
-(defvar *scandy-db* )
-(defvar db nil)
+(defvar *scandy-db-filename* )
+(defvar *vuln-db* nil)
+(defvar *db* nil)
 
 (unless (zs3:bucket-exists-p "scandy-db")
   (zs3:create-bucket "scandy-db"))
@@ -42,10 +43,14 @@
 
 (defun get-db-connection ()
   (let ((db-name (fifth (uiop:command-line-arguments))))
-    (setf *scandy-db* db-name)
+    (setf *scandy-db-filename* db-name)
     (zs3:get-file "scandy-db" "scandy.db" db-name)
     (log:info "Pulled scandy.db from S3 storage" db-name)
     (log:info "DB file exists?" (uiop:file-exists-p db-name))
+    (setf *vuln-db* (handler-case
+                        (dbi:connect :sqlite3 :database-name "vuln.db")
+                      (error (e)
+                        (trivial-backtrace:print-condition e t))))
     (setf *db* (handler-case
                    (dbi:connect :sqlite3 :database-name db-name)
                  (error (e)
@@ -67,7 +72,14 @@ CREATE TABLE IF NOT EXISTS llm_cache (
     prompt_hash TEXT PRIMARY KEY,
     response TEXT
 )")
-          ;; Create prompt log (for debugging)
+          ;; Create per-run vulnerability db
+          (dbi:do-sql *vuln-db* "
+CREATE TABLE IF NOT EXISTS vulns (
+    id TEXT,
+    age INTEGER,
+    image TEXT
+)")
+            ;; Create prompt log (for debugging)
           (dbi:do-sql *db* "
 CREATE TABLE IF NOT EXISTS prompts (
     prompt_hash TEXT PRIMARY KEY,
@@ -671,13 +683,17 @@ don't mention RHEL 8.  Here's the context for your analysis:
                      <tr class="view"><td class="no-wrap"> ,(id (car vulns)) </td><td>
                      ,(let ((pdv (find-if (lambda (v) (published-date v)) vulns)))
                         (if pdv
-                            (floor
-                             (/ (- (get-universal-time)
-                                   (local-time:timestamp-to-universal
-                                    (published-date pdv)))
-                                (* 60.0 60.0 24.0)))
+                            (let ((age (floor
+                                        (/ (- (get-universal-time)
+                                              (local-time:timestamp-to-universal
+                                               (published-date pdv)))
+                                           (* 60.0 60.0 24.0)))))
+                              (dbi:do-sql *vuln-db*
+                                "INSERT INTO vulns (id, age, image) VALUES (?, ?, ?)"
+                                (list (id (car vulns)) age image-name))
+                              age)
                             "?"))
-                     </td><td>,(format nil "~{~A ~}" (collect-components vulns))</td><td style=(severity-style (trivy-severity vulns)) > ,(trivy-severity vulns) </td><td style=(severity-style (grype-severity vulns)) > ,(grype-severity vulns) </td><td style=(severity-style (redhat-severity vulns)) > ,(redhat-severity vulns) </td> </tr>
+                     </td><td> ,(format nil "~{~A ~}" (collect-components vulns))</td><td style=(severity-style (trivy-severity vulns)) > ,(trivy-severity vulns) </td><td style=(severity-style (grype-severity vulns)) > ,(grype-severity vulns) </td><td style=(severity-style (redhat-severity vulns)) > ,(redhat-severity vulns) </td> </tr>
                      <tr class="fold"><td colspan="6">
                      <div>
                      <div>
@@ -702,9 +718,104 @@ don't mention RHEL 8.  Here's the context for your analysis:
          stream))))
 
   (dbi:disconnect *db*)
+  (dbi:disconnect *vuln-db*)
 
-  (zs3:put-file *scandy-db* "scandy-db" "scandy.db")
+  (zs3:put-file *scandy-db-filename* "scandy-db" "scandy.db")
 
   (log:info "Pushed scandy.db from S3 storage")
 
   (sb-ext:quit))
+
+(defun process-vulns (rows)
+  (let ((result (make-hash-table :test 'equal)))
+    (dolist (row rows)
+      (let* ((id (nth 1 row))
+             (age (nth 3 row))
+             (image (nth 5 row))
+             (entry (gethash (list id age) result)))
+        (if entry
+            (push image entry)
+            (setf (gethash (list id age) result) (list image)))))
+    result))
+
+(defun make-index.html ()
+  (let ((rows
+          (let* ((connection (dbi:connect :sqlite3 :database-name "vuln.db"))
+                 (query (dbi:execute (dbi:prepare connection "SELECT id, age, image FROM vulns WHERE age <= 30 ORDER BY age ASC"))))
+            (unwind-protect
+                 (loop for row = (dbi:fetch query)
+                       while row
+                       collect row)
+              (dbi:disconnect connection)))))
+    (print rows)
+    (let ((vulns (make-hash-table :test 'equal)))
+      (dolist (row rows)
+        (let* ((id (nth 1 row))
+               (age (nth 3 row))
+               (image (nth 5 row))
+               (entry (gethash (list id age) vulns)))
+          (if entry
+              (push image entry)
+              (setf (gethash (list id age) vulns) (list image)))))
+
+      (maphash (lambda (k v) (format t "~&~A: ~A~%" k v)) vulns)
+
+      (with-open-file (stream "index.html" :direction :output
+                                           :if-exists :supersede
+                                           :if-does-not-exist :create)
+        (markup:write-html-to-stream
+         <page-template title="scandy">
+         <br>
+         <h2>New CVEs from the last 30 days</h2>
+         <table>
+         <tr><th>ID</th><th>Age</th><th>Vulnerable Images</th></tr>
+         <markup:merge-tag>
+         ,@(let ((rows))
+             (maphash (lambda (key images)
+                        (let ((id (first key))
+                              (age (second key)))
+                          (push
+                           (progn
+                             <markup:merge-tag>
+                             <tr>
+                             <td> ,(progn id) </td>
+                             <td> ,(princ-to-string age) </td>
+                             <td> <ul>
+                             ,@(mapcar (lambda (image)
+                                         <markup:merge-tag>
+                                         <li> <a href=(format nil "~A-with-updates.html"
+                                                              (ppcre:regex-replace-all "/" (ppcre:regex-replace-all ":" image "--") "--")) > ,(progn image) </a> </li>
+                                         </markup:merge-tag>)
+                                       images)
+                             </ul> </td>
+                             </tr>
+                             </markup:merge-tag>) rows)))
+                      vulns)
+             (reverse rows))
+         </markup:merge-tag>
+         </table>
+         <br>
+         <h2>Scanned image reports</h2>
+         <ul>
+         <li><a href="registry.access.redhat.com--ubi8-with-updates.html">registry.access.redhat.com/ubi8</a></li>
+         <li><a href="registry.access.redhat.com--ubi9-with-updates.html">registry.access.redhat.com/ubi9</a></li>
+         <li><a href="registry.access.redhat.com--ubi9-minimal-with-updates.html">registry.access.redhat.com/ubi9-minimal </a></li>
+         <li><a href="registry.access.redhat.com--ubi8-minimal-with-updates.html">registry.access.redhat.com/ubi8-minimal </a></li>
+         <li><a href="registry.access.redhat.com--ubi8--openjdk-8-with-updates">registry.access.redhat.com/ubi8/openjdk-8</a></li>
+         <li><a href="registry.access.redhat.com--ubi8--openjdk-21-with-updates">registry.access.redhat.com/ubi8/openjdk-21</a></li>
+         <li><a href="registry.access.redhat.com--ubi9--openjdk-21-with-updates">registry.access.redhat.com/ubi9/openjdk-21</a></li>
+         <li><a href="registry.redhat.io--ubi8--openjdk-8-runtime-with-updates">registry.redhat.io/ubi8/openjdk-8-runtime</a></li>
+         <li><a href="registry.redhat.io--ubi8--openjdk-21-runtime-with-updates">registry.redhat.io/ubi8/openjdk-21-runtime</a></li>
+         <li><a href="registry.redhat.io--ubi9--openjdk-21-runtime-with-updates">registry.redhat.io/ubi9/openjdk-21-runtime</a></li>
+         <li><a href="registry.access.redhat.com--ubi8--python-39-with-updates.html">registry.access.redhat.com/ubi8/python-39</a></li>
+         <li><a href="registry.access.redhat.com--ubi8--python-311-with-updates.html">registry.access.redhat.com/ubi8/python-311</a></li>
+         <li><a href="registry.access.redhat.com--ubi8--python-312-with-updates.html">registry.access.redhat.com/ubi8/python-312</a></li>
+         <li><a href="registry.access.redhat.com--ubi9--python-39-with-updates.html">registry.access.redhat.com/ubi9/python-39</a></li>
+         <li><a href="registry.access.redhat.com--ubi9--python-311-with-updates.html">registry.access.redhat.com/ubi9/python-311</a></li>
+         <li><a href="registry.access.redhat.com--ubi9--python-312-with-updates.html">registry.access.redhat.com/ubi9/python-312</a></li>
+         <li><a href="registry.redhat.io--jboss-eap-7--eap74-openjdk11-runtime-openshift-rhel8-with-updates.html">registry.redhat.io/jboss-eap-7/eap74-openjdk11-runtime-openshift-rhel8</a></li>
+         <li><a href="registry.redhat.io--ocp-tools-4--jenkins-rhel8--v4.12.0-1716801209-with-updates">registry.redhat.io/ocp-tools-4/jenkins-rhel8:v4.12.0-1716801209</a></li>
+         </ul>
+         </page-template>
+         stream))))
+    (sb-ext:quit))
