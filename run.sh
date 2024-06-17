@@ -39,11 +39,9 @@ sbcl --non-interactive --eval "(asdf:load-system :report)" --eval "(report::get-
 
 for IMAGE in registry.redhat.io/ocp-tools-4/jenkins-rhel8:v4.12.0-1716801209 \
                  registry.access.redhat.com/ubi8/openjdk-8 \
-                 registry.access.redhat.com/ubi9/openjdk-8 \
                  registry.access.redhat.com/ubi8/openjdk-21 \
                  registry.access.redhat.com/ubi9/openjdk-21 \
                  registry.redhat.io/ubi8/openjdk-8-runtime \
-                 registry.redhat.io/ubi9/openjdk-8-runtime \
                  registry.redhat.io/ubi8/openjdk-21-runtime \
                  registry.redhat.io/ubi9/openjdk-21-runtime \
                  registry.access.redhat.com/ubi9 \
