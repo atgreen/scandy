@@ -34,6 +34,9 @@ if ! test -f /usr/bin/sbcl; then
   (cd ocicl; sbcl --load setup.lisp; ocicl setup > ~/.sbclrc)
 fi
 
+# Debugging DB connection
+sbcl --non-interactive --eval "(asdf:load-system :report)" --eval "(report:get-db-connection)" 1 2 3 4 ${GITHUB_WORKSPACE}/scandy.db || true
+
 for IMAGE in registry.redhat.io/ocp-tools-4/jenkins-rhel8:v4.12.0-1716801209 \
                  registry.access.redhat.com/ubi9 \
                  registry.access.redhat.com/ubi8 \
