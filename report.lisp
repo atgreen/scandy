@@ -1,4 +1,4 @@
-;;; report.asd
+;;; report.lisp
 ;;;
 ;;; SPDX-License-Identifier: MIT
 ;;;
