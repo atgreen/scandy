@@ -76,8 +76,7 @@ EOF
     VERSION=$(date +%Y%m%d)
 
     sbcl --non-interactive --eval "(asdf:load-system :report)" --eval "(report:main)" $(pwd)/_site/${IMG}.html ${SCANDIR}/grype/* ${SCANDIR}/trivy/* ${IMAGE} ${GITHUB_WORKSPACE}/scandy.db || true
-
-    ls -l ${GITHUB_WORKSPACE}/scandy.db
+    sbcl --eval "(asdf:load-system :report)" --eval "(report::make-index.html)"
 
     (cd ${WORKDIR};
      tar cvfz ${IMG}-scandy.tar.gz * ;
