@@ -537,7 +537,7 @@ code {
           (log:info "Found cached LLM response" prompt-hash)
           response)
         (let ((completer (make-instance 'completions:openai-completer
-                                        :model "gpt-4o"
+                                        :model "gpt-3.5-turbo"
                                         :api-key (uiop:getenv "LLM_API_KEY"))))
           (log:info "Querying LLM" prompt-hash)
           ;; To protect against runaway LLM API usage
