@@ -540,7 +540,7 @@ code {
                              (babel:string-to-octets string
                                                      :encoding :utf-8))))
 
-(defun get-llm-response (prompt)
+(defun get-llm-response (prompt &optional (model "gpt-3.5-turbo"))
   (let* ((prompt-hash (string-digest prompt))
          (response (cadr (assoc :|response|
                                 (dbi:fetch-all
@@ -552,22 +552,28 @@ code {
           (log:info "Found cached LLM response" prompt-hash)
           response)
         (let ((completer (make-instance 'completions:openai-completer
-                                        :model "gpt-3.5-turbo"
+                                        :model model
                                         :api-key (uiop:getenv "LLM_API_KEY"))))
           (log:info "Querying LLM" prompt-hash)
           ;; To protect against runaway LLM API usage
           (when (eq 0 *count*)
             (return-from get-llm-response))
           (decf *count*)
-          (let ((text (completions:get-completion completer prompt)))
-            (log:info "LLM response" text)
-            (dbi:do-sql *db*
-              "INSERT INTO llm_cache (prompt_hash, response) VALUES (?, ?)"
-              (list prompt-hash text))
-            (dbi:do-sql *db*
-              "INSERT INTO prompts (prompt_hash, prompt) VALUES (?, ?)"
-              (list prompt-hash prompt))
-            text)))))
+          (handler-case
+              (let ((text (completions:get-completion completer prompt)))
+                (log:info "LLM response" text)
+                (dbi:do-sql *db*
+                  "INSERT INTO llm_cache (prompt_hash, response) VALUES (?, ?)"
+                  (list prompt-hash text))
+                (dbi:do-sql *db*
+                  "INSERT INTO prompts (prompt_hash, prompt) VALUES (?, ?)"
+                  (list prompt-hash prompt))
+                text)
+            (dex:http-request-bad-request ()
+              ;; We may have exceeded gpt-3.5-turbo token limit,
+              ;; in which case we'll try the more expensive gpt-4o.
+              (when (string= model "gpt-3.5-turbo")
+                (get-llm-response prompt "gpt-4o"))))))))
 
 (defun format-llm-context (stream vuln a b)
   (format stream "~A" (llm-context vuln)))
