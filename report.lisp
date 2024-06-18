@@ -422,7 +422,7 @@ code {
      <footer class="page-footer font-small
                     special-color-dark pt-4">
        <div class="footer-copyright
-                   text-center py-3">(C) 2024<a href="https://linkedin.com/in/green" > Anthony Green</a></div>
+                   text-center py-3">(C) 2024<a href="https://linkedin.com/in/green" >Anthony Green</a></div>
      </footer>
      <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
              integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
@@ -766,7 +766,7 @@ don't mention RHEL 8.  Here's the context for your analysis:
                          (progn
                            <markup:merge-tag>
                            <tr>
-                           <td> ,(progn id) </td>
+                           <td class="no-wrap"> ,(progn id) </td>
                            <td> ,(princ-to-string (first (car data-list))) </td>
                            <td> ,(progn (second (car data-list))) </td>
                            <td style=(severity-style (third (car data-list))) > ,(progn (third (car data-list))) </td>
