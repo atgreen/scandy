@@ -412,7 +412,7 @@ code {
            <div class="col" >
              ,@(progn children)
              <hr/>
-             Scandy is brought to you by <a href="https://linkedin.com/in/green">Anthony Green</a>
+             Scandy is an experiment by <a href="https://linkedin.com/in/green">Anthony Green</a>
              and is available in source form under the terms of the MIT license from
              <a href="https://github.com/atgreen/scandy" > https://github.com/atgreen/scandy</a>.
            </div>
@@ -422,7 +422,7 @@ code {
      <footer class="page-footer font-small
                     special-color-dark pt-4">
        <div class="footer-copyright
-                   text-center py-3">(C) 2024<a href="https://linkedin.com/in/green" >Anthony Green</a></div>
+                   text-center py-3">(C) 2024 <a href="https://linkedin.com/in/green" >Anthony Green</a></div>
      </footer>
      <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
              integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
