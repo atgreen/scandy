@@ -527,12 +527,15 @@ code {
       (log:info "Found cached redhat security API response" cve-id))
     (if content
         content
-        (let ((rhj (dex:get (format nil "https://access.redhat.com/hydra/rest/securitydata/cve/~A" cve-id))))
-          (dbi:do-sql *db*
-            "INSERT INTO rhcve (cve, content) VALUES (?, ?)"
-            (list cve-id rhj))
-          (log:info "Caching redhat security API response" cve-id)
-          rhj))))
+        (handler-case
+            (let ((rhj (dex:get (format nil "https://access.redhat.com/hydra/rest/securitydata/cve/~A" cve-id))))
+              (dbi:do-sql *db*
+                "INSERT INTO rhcve (cve, content) VALUES (?, ?)"
+                (list cve-id rhj))
+              (log:info "Caching redhat security API response" cve-id)
+              rhj)
+          (dex:http-request-not-found ()
+            (format nil "Red Hat is not tracking ~A" cve-id))))))
 
 (defun string-digest (string)
   (ironclad:byte-array-to-hex-string
