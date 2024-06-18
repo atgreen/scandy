@@ -118,9 +118,10 @@ CREATE TABLE IF NOT EXISTS prompts (
 
 (defun capitalize-word (word)
   "Capitalize the first letter of WORD and make the rest lower-case."
-  (concatenate 'string
-               (string-upcase (subseq word 0 1))
-               (string-downcase (subseq word 1))))
+  (when (and word (> (length word) 1))
+    (concatenate 'string
+                 (string-upcase (subseq word 0 1))
+                 (string-downcase (subseq word 1)))))
 
 (defmethod initialize-instance ((vuln grype-vulnerability) &key json)
   (call-next-method)
@@ -657,7 +658,7 @@ don't mention RHEL 8.  Here's the context for your analysis:
                           (rhl (json:decode-json-from-string rhj)))
                      (push (make-instance 'redhat-vulnerability :json rhl) (gethash id vuln-table)))
                  (error (e)
-                   (trivial-backtrace:print-condition e t)
+                   (trivial-backtrace:print-backtrace e :output *standard-output* :verbose t)
                    nil)))
              vuln-table)
 
