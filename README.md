@@ -10,6 +10,10 @@ for details.
 
 Reports are available here: https://atgreen.github.io/scandy/
 
+The risk assessment reports include experimental LLM-generated content
+and should be cross-checked for accuracy!
+
+
 ## Author and License
 
 Scandy is an experiment by [Anthony

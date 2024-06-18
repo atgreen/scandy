@@ -416,6 +416,7 @@ code {
              Scandy is an experiment by <a href="https://linkedin.com/in/green">Anthony Green</a>
              and is available in source form under the terms of the MIT license from
              <a href="https://github.com/atgreen/scandy" > https://github.com/atgreen/scandy</a>.
+             Scandy reports include <b>LLM-generated content</b> and should be cross-checked for accuracy!
            </div>
          </div>
        </main>
