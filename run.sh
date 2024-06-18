@@ -80,8 +80,8 @@ EOF
 
     (cd ${WORKDIR};
      tar cvfz ${IMG}-scandy.tar.gz * ;
-     oras push ghcr.io/atgreen/${IMG}:${VERSION} ${IMG}-scandy.tar.gz:application/vnd.uknown/layer.v1+gzip ;
-     oras tag ghcr.io/atgreen/${IMG}:${VERSION} latest
+     oras push ghcr.io/atgreen/${IMG}:${VERSION} ${IMG}-scandy.tar.gz:application/vnd.uknown/layer.v1+gzip || true ;
+     oras tag ghcr.io/atgreen/${IMG}:${VERSION} latest || true
 
      rm -rf *
     )
