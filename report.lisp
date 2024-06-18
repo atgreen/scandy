@@ -276,7 +276,7 @@ pre {
 table {
     border-collapse: collapse;
     border: 1px solid #ddd;
-    width: 75%;
+    width: 100%;
 }
 
 table th {
