@@ -77,6 +77,8 @@ CREATE TABLE IF NOT EXISTS llm_cache (
 CREATE TABLE IF NOT EXISTS vulns (
     id TEXT,
     age INTEGER,
+    components TEXT,
+    severity TEXT,
     image TEXT
 )")
             ;; Create prompt log (for debugging)
@@ -689,8 +691,8 @@ don't mention RHEL 8.  Here's the context for your analysis:
                                                (published-date pdv)))
                                            (* 60.0 60.0 24.0)))))
                               (dbi:do-sql *vuln-db*
-                                "INSERT INTO vulns (id, age, image) VALUES (?, ?, ?)"
-                                (list (id (car vulns)) age image-name))
+                                "INSERT INTO vulns (id, age, components, severity, image) VALUES (?, ?, ?, ?, ?)"
+                                (list (id (car vulns)) age (format nil "~{ ~A~}" (collect-components vulns)) (redhat-severity vulns) image-name))
                               age)
                             "?"))
                      </td><td> ,(format nil "~{~A ~}" (collect-components vulns))</td><td style=(severity-style (trivy-severity vulns)) > ,(trivy-severity vulns) </td><td style=(severity-style (grype-severity vulns)) > ,(grype-severity vulns) </td><td style=(severity-style (redhat-severity vulns)) > ,(redhat-severity vulns) </td> </tr>
@@ -726,22 +728,10 @@ don't mention RHEL 8.  Here's the context for your analysis:
 
   (sb-ext:quit))
 
-(defun process-vulns (rows)
-  (let ((result (make-hash-table :test 'equal)))
-    (dolist (row rows)
-      (let* ((id (nth 1 row))
-             (age (nth 3 row))
-             (image (nth 5 row))
-             (entry (gethash (list id age) result)))
-        (if entry
-            (push image entry)
-            (setf (gethash (list id age) result) (list image)))))
-    result))
-
 (defun make-index.html ()
   (let ((rows
           (let* ((connection (dbi:connect :sqlite3 :database-name "vuln.db"))
-                 (query (dbi:execute (dbi:prepare connection "SELECT id, age, image FROM vulns WHERE age <= 30 ORDER BY age ASC"))))
+                 (query (dbi:execute (dbi:prepare connection "SELECT id, age, components, severity, image FROM vulns WHERE age <= 14 ORDER BY age ASC"))))
             (unwind-protect
                  (loop for row = (dbi:fetch query)
                        while row
@@ -752,13 +742,13 @@ don't mention RHEL 8.  Here's the context for your analysis:
       (dolist (row rows)
         (let* ((id (nth 1 row))
                (age (nth 3 row))
-               (image (nth 5 row))
-               (entry (gethash (list id age) vulns)))
+               (components (nth 5 row))
+               (severity (nth 7 row))
+               (image (nth 9 row))
+               (entry (gethash id vulns)))
           (if entry
-              (push image entry)
-              (setf (gethash (list id age) vulns) (list image)))))
-
-      (maphash (lambda (k v) (format t "~&~A: ~A~%" k v)) vulns)
+              (push (list age components severity image) entry)
+              (setf (gethash id vulns) (list (list age components severity image))))))
 
       (with-open-file (stream "index.html" :direction :output
                                            :if-exists :supersede
@@ -766,30 +756,30 @@ don't mention RHEL 8.  Here's the context for your analysis:
         (markup:write-html-to-stream
          <page-template title="scandy">
          <br>
-         <h2>New CVEs from the last 30 days</h2>
+         <h2>New CVEs from the last 14 days</h2>
          <table>
-         <tr><th>ID</th><th>Age</th><th>Vulnerable Images</th></tr>
+         <tr><th>ID</th><th>Age</th><th>Components</th><th>Red Hat Severity</th><th>Vulnerable Images</th></tr>
          <markup:merge-tag>
          ,@(let ((rows))
-             (maphash (lambda (key images)
-                        (let ((id (first key))
-                              (age (second key)))
-                          (push
-                           (progn
-                             <markup:merge-tag>
-                             <tr>
-                             <td> ,(progn id) </td>
-                             <td> ,(princ-to-string age) </td>
-                             <td> <ul>
-                             ,@(mapcar (lambda (image)
-                                         <markup:merge-tag>
-                                         <li> <a href=(format nil "~A-with-updates.html"
-                                                              (ppcre:regex-replace-all "/" (ppcre:regex-replace-all ":" image "--") "--")) > ,(progn image) </a> </li>
-                                         </markup:merge-tag>)
-                                       images)
-                             </ul> </td>
-                             </tr>
-                             </markup:merge-tag>) rows)))
+             (maphash (lambda (id data-list)
+                        (push
+                         (progn
+                           <markup:merge-tag>
+                           <tr>
+                           <td> ,(progn id) </td>
+                           <td> ,(princ-to-string (first (car data-list))) </td>
+                           <td> ,(progn (second (car data-list))) </td>
+                           <td style=(severity-style (third (car data-list))) > ,(progn (third (car data-list))) </td>
+                           <td> <ul>
+                           ,@(mapcar (lambda (data)
+                                       <markup:merge-tag>
+                                       <li> <a href=(format nil "~A-with-updates.html"
+                                                            (ppcre:regex-replace-all "/" (ppcre:regex-replace-all ":" (fourth data) "--") "--")) > ,(progn (fourth data)) </a> </li>
+                                                            </markup:merge-tag>)
+                                     data-list)
+                           </ul> </td>
+                           </tr>
+                           </markup:merge-tag>) rows))
                       vulns)
              (reverse rows))
          </markup:merge-tag>
