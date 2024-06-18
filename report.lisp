@@ -803,6 +803,7 @@ don't mention RHEL 8.  Here's the context for your analysis:
          <li><a href="registry.access.redhat.com--ubi9--python-39-with-updates.html">registry.access.redhat.com/ubi9/python-39</a></li>
          <li><a href="registry.access.redhat.com--ubi9--python-311-with-updates.html">registry.access.redhat.com/ubi9/python-311</a></li>
          <li><a href="registry.access.redhat.com--ubi9--python-312-with-updates.html">registry.access.redhat.com/ubi9/python-312</a></li>
+         <li><a href="registry.redhat.io--jboss-eap-7--eap74-openjdk11-openshift-rhel8-with-updates.html">registry.redhat.io/jboss-eap-7/eap74-openjdk11-openshift-rhel8</a></li>
          <li><a href="registry.redhat.io--jboss-eap-7--eap74-openjdk11-runtime-openshift-rhel8-with-updates.html">registry.redhat.io/jboss-eap-7/eap74-openjdk11-runtime-openshift-rhel8</a></li>
          <li><a href="registry.redhat.io--ocp-tools-4--jenkins-rhel8--v4.12.0-1716801209-with-updates">registry.redhat.io/ocp-tools-4/jenkins-rhel8:v4.12.0-1716801209</a></li>
          </ul>
