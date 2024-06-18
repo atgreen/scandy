@@ -3,7 +3,10 @@
 # scandy
 > Sweet container image scans
 
-Images are scanned using github actions every day at 5:30am ET.
+Images are scanned every day at 5:30am ET after updating all of the
+base image packages.  See the [scheduled github actions
+tasks](https://github.com/atgreen/scandy/blob/main/.github/workflows/scan.yaml)
+for details.
 
 Reports are available here: https://atgreen.github.io/scandy/
 
