@@ -625,10 +625,11 @@ don't mention RHEL 8.  Here's the context for your analysis:
         (let ((vuln (make-instance 'grype-vulnerability :json vuln-json)))
           (push vuln (gethash (id vuln) vuln-table)))))
 
-    (let ((vulns (cdr (assoc :*VULNERABILITIES (car (cdr (assoc :*RESULTS trivy-json)))))))
-      (dolist (vuln-json vulns)
-        (let ((vuln (make-instance 'trivy-vulnerability :json vuln-json)))
-          (push vuln (gethash (id vuln) vuln-table)))))
+    (dolist (vgroup (cdr (assoc :*RESULTS trivy-json)))
+      (let ((vulns (cdr (assoc :*VULNERABILITIES vgroup))))
+        (dolist (vuln-json vulns)
+          (let ((vuln (make-instance 'trivy-vulnerability :json vuln-json)))
+            (push vuln (gethash (id vuln) vuln-table))))))
 
     ;; Create a Red Hat vulnerability record
     (maphash (lambda (id vulns)
