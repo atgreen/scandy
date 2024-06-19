@@ -319,7 +319,12 @@ image, as it is associated with the kernel-headers package.  Kernel
         .dt-buttons {
             margin-bottom: 10px;
         }
-    </style>
+        .no-wrap {
+            white-space: nowrap;
+            word-break: keep-all;
+            overflow-wrap: normal;
+        }
+  </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
