@@ -675,7 +675,7 @@ don't mention RHEL 8.  Here's the context for your analysis:
          ,@(mapcar (lambda (vulns)
                      <markup:merge-tag>
                      <tr class=(severity-class (redhat-severity vulns)) data-bs-toggle="modal" data-bs-target=(format nil "#~A-modal" (id (car vulns))) >
-                     <td> ,(id (car vulns)) </td>
+                     <td class="no-wrap"> ,(id (car vulns)) </td>
                      <td> ,(let ((pdv (find-if (lambda (v) (published-date v)) vulns)))
                              (if pdv
                                  (let ((age (floor
@@ -715,7 +715,7 @@ don't mention RHEL 8.  Here's the context for your analysis:
 (defun make-index.html ()
   (let ((rows
           (let* ((connection (dbi:connect :sqlite3 :database-name "vuln.db"))
-                 (query (dbi:execute (dbi:prepare connection "SELECT id, age, components, severity, image FROM vulns WHERE age <= 14 ORDER BY age ASC"))))
+                 (query (dbi:execute (dbi:prepare connection "SELECT id, age, components, severity, image FROM vulns WHERE age <= 7 ORDER BY age ASC"))))
             (unwind-protect
                  (loop for row = (dbi:fetch query)
                        while row
@@ -740,10 +740,13 @@ don't mention RHEL 8.  Here's the context for your analysis:
         (markup:write-html-to-stream
          <page-template title="scandy">
          <br>
-         <h2>New CVEs from the last 14 days</h2>
-         <table>
-         <tr><th>ID</th><th>Age</th><th>Components</th><th>Red Hat Severity</th><th>Vulnerable Images</th></tr>
+         <h2>New CVEs from the last 7 days</h2>
+         <table class="table table-hover" id="results">
          <markup:merge-tag>
+         <thead class="thead-dark" >
+         <tr><th>ID</th><th>Age</th><th>Components</th><th>Red Hat Severity</th><th>Vulnerable Images</th></tr>
+         </thead>
+         <tbody>
          ,@(let ((rows))
              (maphash (lambda (id data-list)
                         (push
@@ -766,6 +769,7 @@ don't mention RHEL 8.  Here's the context for your analysis:
                            </markup:merge-tag>) rows))
                       vulns)
              (reverse rows))
+         </tbody>
          </markup:merge-tag>
          </table>
          <br>
