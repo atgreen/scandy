@@ -653,10 +653,11 @@ don't mention RHEL 8.  Here's the context for your analysis:
          <h1>,(progn image-name)</h1>
          <h2>With updates as of ,(local-time:format-timestring nil (local-time:now) :format local-time:+rfc-1123-format+) </h2>
          <div class="dt-buttons btn-group">
-         <button class="btn btn-secondary" onclick="filterSeverity('')" >All</button>
-         <button class="btn btn-danger" onclick="filterSeverity('Critical')" >Critical</button>
-         <button class="btn btn-warning" onclick="filterSeverity('Medium')" >Medium</button>
-         <button class="btn btn-success" onclick="filterSeverity('Low')" >Low</button>
+         <button class="btn" style="background-color: #bbbbbb; border: 1px solid #000" onclick="filterSeverity('')">All</button>
+         <button class="btn" style="background-color: #ffcccc; border: 1px solid #000" onclick="filterSeverity('Critical')">Critical</button>
+         <button class="btn" style="background-color: #ffdab9; border: 1px solid #000" onclick="filterSeverity('High')">High</button>
+         <button class="btn" style="background-color: #ffffcc; border: 1px solid #000" onclick="filterSeverity('Medium')">Medium</button>
+         <button class="btn" style="border: 1px solid #000" onclick="filterSeverity('Low')">Low</button>
          </div>
          <table class="table table-hover" id="results" >
          <markup:merge-tag>
@@ -705,7 +706,7 @@ don't mention RHEL 8.  Here's the context for your analysis:
   (dbi:disconnect *db*)
   (dbi:disconnect *vuln-db*)
 
-;;  (zs3:put-file *scandy-db-filename* "scandy-db" "scandy.db")
+  (zs3:put-file *scandy-db-filename* "scandy-db" "scandy.db")
 
   (log:info "Pushed scandy.db from S3 storage")
 
