@@ -32,6 +32,7 @@
 (setf zs3:*credentials* (list (uiop:getenv "AWS_ACCESS_KEY")
                               (uiop:getenv "AWS_SECRET_KEY")))
 
+(defvar *image-name*)
 (defvar *scandy-db-filename* )
 (defvar *vuln-db* nil)
 (defvar *db* nil)
@@ -222,229 +223,181 @@ image, as it is associated with the kernel-headers package.  Kernel
   (let ((v (find-if (lambda (v) (eq (type-of v) 'redhat-vulnerability)) vulns)))
     (when v (severity v))))
 
+(defvar *ordered-vulns* nil)
+
+(markup:deftag modals-template ()
+  (markup:make-merge-tag
+    (mapcar (lambda (vulns)
+             <markup:merge-tag>
+             <div class="modal fade" id=(format nil "~A-modal" (id (car vulns))) tabindex="-1" aria-labelledby=(format nil "~A-modalLabel" (id (car vulns))) aria-hidden="true">
+             <div class="modal-dialog modal-lg">
+             <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id=(format nil "~A-modalLabel" (id (car vulns))) >Security Advisory: ,(progn (id (car vulns))) </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                   ,(progn (markup:unescaped (get-analysis (id (car vulns)) *image-name* vulns)))
+                   <h3>References:</h3>
+                   <ul>
+                   <markup:merge-tag>
+                   ,@(mapcar (lambda (url)
+                               <li><a href=url target="_blank"> ,(progn url) </a></li>)
+                             (collect-references (id (car vulns)) vulns))
+                   </markup:merge-tag>
+                   </ul>
+                </div>
+             </div>
+             </div>
+             </div>
+             </markup:merge-tag>)
+           *ordered-vulns*)))
+
 (markup:deftag page-template (children &key title)
-   <html>
-     <head>
-       <meta charset="utf-8" />
-       <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-       <link sizes="180x180" rel="apple-touch-icon" href="images/apple-touch-icon.png" />
-       <link sizes="32x32" rel="icon" type="image/png" href="images/favicon-32x32.png" />
-       <link sizes="16x16" rel="icon" type="image/png" href="images/favicon-16x16.png" />
-       <link rel="manifest" href="images/site.webmanifest" />
-       <link rel="mask-icon" href="images/safari-pinned-tab.svg" />
-       <meta name="msapplication-TileColor" content="#da532c" />
-       <meta name="theme-color" content="#ffffff" />
-       <title>,(progn title)</title>
-  <style>
-@import url("https://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css");
-
-* {
-    font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
-    box-sizing: border-box;
-}
-
-html {
-    position: relative;
-    min-height: 100%;
-}
-
-body {
-    padding-top: 65px;
-    margin-bottom: 60px;
-}
-
-h1 {
-  position: relative;
-  bottom: 18px;
-  left: 10px;
-}
-
-pre {
-    display: block;
-    padding: 9.5px;
-    margin: 0 0 10px;
-    font-size: 13px;
-    line-height: 1.42857143;
-    color: #333;
-    word-break: break-all;
-    word-wrap: break-word;
-    background-color: #f5f5f5;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-shadow: 2px 2px 3px 0px black;
-}
-
-table {
-    border-collapse: collapse;
-    border: 1px solid #ddd;
-    width: 100%;
-}
-
-table th {
-    text-align: left;
-    border-bottom: 1px solid #ccc;
-}
-
-table th, table td {
-    padding: .4em;
-}
-
-table.fold-table > tbody > tr.view td,
-table.fold-table > tbody > tr.view th {
-    cursor: pointer;
-}
-
-table.fold-table > tbody > tr.view td:first-child,
-table.fold-table > tbody > tr.view th:first-child {
-    position: relative;
-    padding-left: 20px;
-}
-
-table.fold-table > tbody > tr.view td:first-child:before,
-table.fold-table > tbody > tr.view th:first-child:before {
-    position: absolute;
-    top: 50%;
-    left: 5px;
-    width: 9px;
-    height: 16px;
-    margin-top: -8px;
-    font: 16px fontawesome;
-    color: #999;
-    content: "\f0d7";
-    transition: all .3s ease;
-}
-
-table.fold-table > tbody > tr.view:nth-child(4n-1) {
-    background: #eee;
-}
-
-table.fold-table > tbody > tr.view:hover {
-    background: #aaa;
-}
-
-table.fold-table > tbody > tr.fail {
-    background: #ffb3b3
-}
-
-table.fold-table > tbody > tr.xfail {
-    background: #e6f6e6
-}
-
-table.fold-table > tbody > tr.pass {
-    background: #80ff80
-}
-
-/*
-table.fold-table > tbody > tr.view.open {
-    background: tomato;
-    color: white;
-}
-*/
-
-table.fold-table > tbody > tr.view.open td:first-child:before, table.fold-table > tbody > tr.view.open th:first-child:before {
-    transform: rotate(-180deg);
-    color: #333;
-}
-
-table.fold-table > tbody > tr.fold {
-    display: none;
-}
-
-table.fold-table > tbody > tr.fold.open {
-    display: table-row;
-}
-
-.fold-content {
-    padding: .5em;
-}
-
-.fold-content h3 {
-    margin-top: 0;
-}
-
-.fold-content > table {
-    border: 12px solid #ccc;
-}
-
-tr:nth-child(4n-2) {
-    background: #eee;
-}
-
-.no-wrap {
-  white-space: nowrap;
-  word-break: keep-all;
-  overflow-wrap: normal;
-}
-
-.footer {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  /* Set the fixed height of the footer here */
-  height: 120px;
-  line-height: 60px; /* Vertically center the text there */
-  background-color: #f5f5f5;
-}
-
-.footer > .container {
-    padding-right: 15px;
-    padding-left: 15px;
-}
-
-code {
-  font-size: 80%;
-}
-  </style>
-       <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
-	     integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
-	     crossorigin="anonymous" />
-       <script src="https://cdnjs.cloudflare.com/ajax/libs/prefixfree/1.0.7/prefixfree.min.js" ></script>
-     </head>
-     <header>
-       <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
-         <div class="container-fluid" style="margin-left: 1rem; margin-right: 1rem;">
-           <a class="navbar-brand" href="https://atgreen.github.io/scandy/">scandy</a>
-         </div>
-       </nav>
-     </header>
-     <body>
-       <main class="container" role="main">
-         <div class="row" >
-           <div class="col" >
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png">
+    <link rel="manifest" href="images/site.webmanifest">
+    <link rel="mask-icon" href="images/safari-pinned-tab.svg" color="#5bbad5">
+    <meta name="msapplication-TileColor" content="#da532c">
+    <meta name="theme-color" content="#ffffff">
+    <title>scandy</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/1.7.1/css/buttons.dataTables.min.css">
+    <style>
+        body {
+            padding-top: 65px;
+            margin-bottom: 60px;
+            font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+        }
+        .navbar-brand {
+            font-size: 1.5rem;
+        }
+        h1, h2 {
+            margin: 20px 0;
+        }
+        table {
+            width: 100%;
+        }
+        table th, table td {
+            padding: .75rem;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        .bg-critical {
+            background-color: #ff4d4d;
+            color: white;
+        }
+        .bg-low {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        tbody tr:nth-child(odd) {
+            background-color: #f9f9f9;
+        }
+        tbody tr:nth-child(even) {
+            background-color: #ffffff;
+        }
+        tbody tr:hover {
+            background-color: #f1f1f1;
+        }
+        .footer {
+            background-color: #f5f5f5;
+            padding: 20px 0;
+        }
+        .modal-body ul {
+            padding-left: 20px;
+        }
+        .modal-body h3 {
+            margin-top: 20px;
+        }
+        .dt-buttons {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="https://atgreen.github.io/scandy/">scandy</a>
+        </div>
+    </nav>
+    <main class="container" role="main">
+        <div class="row">
+            <div class="col">
              ,@(progn children)
-             <hr/>
-             Scandy is an experiment by <a href="https://linkedin.com/in/green">Anthony Green</a>
-             and is available in source form under the terms of the MIT license from
-             <a href="https://github.com/atgreen/scandy" > https://github.com/atgreen/scandy</a>.
-             Scandy reports include <b>LLM-generated content</b> and should be cross-checked for accuracy!
-           </div>
-         </div>
-       </main>
-     </body>
-     <footer class="page-footer font-small
-                    special-color-dark pt-4">
-       <div class="footer-copyright
-                   text-center py-3">(C) 2024 <a href="https://linkedin.com/in/green" >Anthony Green</a></div>
-     </footer>
-     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
-             integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
-             crossorigin="anonymous" ></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js"
-             integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut"
-             crossorigin="anonymous" ></script>
-     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
-	     integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
-  crossorigin="anonymous" ></script>
-  <script>
-  $(function(){
-            $(".fold-table tr.view").on("click", function(){
-                                                 $(this).toggleClass("open").next(".fold").toggleClass("open");
-                                                 });
-            });
-  </script>
-  </html>)
+            </div>
+        </div>
+    </main>
+    <footer class="footer">
+        <div class="container">
+             <div class="text-center py-3">&copy; 2024 <a href="https://linkedin.com/in/green">Anthony Green</a></div>
+  <p>Scandy is an experiment, and includes <b>LLM-generated</b> risk assessment content that should be cross-checked for accuracy!
+  Scandy source code is available at <a href="https://github.com/atgreen/scandy">https://github.com/atgreen/scandy</a> and is distributed under the terms of the MIT license.  See Scandy source files for details.</p>
+        </div>
+    </footer>
+    <modals-template>
+    </modals-template>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.7.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.7.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.7.1/js/buttons.print.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <script>
+        $(document).ready(function() {
+            // Custom sorting for severity levels
+            $.fn.dataTable.ext.type.order['severity-pre'] = function (d) {
+                switch (d) {
+                    case 'Critical': return 1;
+                    case 'High': return 2;
+                    case 'Important': return 2;
+                    case 'Medium': return 3;
+                    case 'Moderate': return 3;
+                    case 'Low': return 4;
+                    default: return 5;
+                }
+            };
 
-(defparameter +severity+ '("Unknown" "Low" "Medium" "Moderate" "High" "Important" "Critical"))
+            // Custom sorting for Age column
+            $.fn.dataTable.ext.type.order['age-pre'] = function (d) {
+                return d === '?' ? 999999 : parseInt(d, 10);
+            };
+
+            $('#results').DataTable({
+                "paging": false,
+                "info": true,
+                "searching": true,
+                "order": [],
+                "columnDefs": [
+                { "type": "severity", "targets": [3, 4, 5] },
+                { "type": "age", "targets": [1] }
+                ],
+                dom: 'Bfrtip',
+                buttons: [
+                    'csv', 'pdf'
+                ]
+            });
+            $('[data-bs-toggle="tooltip"]').tooltip();
+        });
+
+        function filterSeverity(severity) {
+            $('#results').DataTable().search(severity).draw();
+        }
+    </script>
+</body>
+</html> )
+
+(defparameter +severity+ '("" "Unknown" "Low" "Medium" "Moderate" "High" "Important" "Critical"))
 
 (defun vuln< (v1 v2)
   "Sort vulnerabilities."
@@ -528,14 +481,14 @@ code {
       (log:info "Found cached redhat security API response" cve-id))
     (if content
         content
-        (handler-case
-            (let ((rhj (dex:get (format nil "https://access.redhat.com/hydra/rest/securitydata/cve/~A" cve-id))))
-              (dbi:do-sql *db*
-                "INSERT INTO rhcve (cve, content) VALUES (?, ?)"
-                (list cve-id rhj))
-              (log:info "Caching redhat security API response" cve-id)
-              rhj)
-          (dex:http-request-not-found ()
+      (handler-case
+          (let ((rhj (dex:get (format nil "https://access.redhat.com/hydra/rest/securitydata/cve/~A" cve-id))))
+            (dbi:do-sql *db*
+                        "INSERT INTO rhcve (cve, content) VALUES (?, ?)"
+                        (list cve-id rhj))
+            (log:info "Caching redhat security API response" cve-id)
+            rhj)
+        (dex:http-request-not-found ()
             (format nil "Red Hat is not tracking ~A" cve-id))))))
 
 (defun string-digest (string)
@@ -634,6 +587,15 @@ don't mention RHEL 8.  Here's the context for your analysis:
      "background-color: #ffffcc; border-top: 1px solid #eee;  border-bottom: 1px solid #eee;")
     (t "")))
 
+(defun severity-class (severity)
+  (cond
+    ((equal severity "Critical")
+     "severity-Critical")
+    ((or (equal severity "High") (equal severity "Important"))
+     "severity-High")
+    ((or (equal severity "Medium") (equal severity "Moderate"))
+     "severity-Medium")
+    (t "")))
 
 (defun main ()
 
@@ -646,6 +608,8 @@ don't mention RHEL 8.  Here's the context for your analysis:
            (json:decode-json-from-string (uiop:read-file-string grype-filename)))
          (trivy-json
            (json:decode-json-from-string (uiop:read-file-string trivy-filename))))
+
+    (setf *image-name* image-name)
 
     (get-db-connection)
 
@@ -679,52 +643,60 @@ don't mention RHEL 8.  Here's the context for your analysis:
               (maphash (lambda (id vpair) (push vpair vulns)) vuln-table)
               (reverse (sort vulns 'vuln<)))))
 
+      (setf *ordered-vulns* ordered-vulns)
+
       (with-open-file (stream report-filename :direction :output
                                               :if-exists :supersede
                                               :if-does-not-exist :create)
         (markup:write-html-to-stream
          <page-template title="scandy">
-         <br>
          <h1>,(progn image-name)</h1>
          <h2>With updates as of ,(local-time:format-timestring nil (local-time:now) :format local-time:+rfc-1123-format+) </h2>
-         <br>
-         <table class="fold-table" id="results">
+         <div class="dt-buttons btn-group">
+         <button class="btn btn-secondary" onclick="filterSeverity('')" >All</button>
+         <button class="btn btn-danger" onclick="filterSeverity('Critical')" >Critical</button>
+         <button class="btn btn-warning" onclick="filterSeverity('Medium')" >Medium</button>
+         <button class="btn btn-success" onclick="filterSeverity('Low')" >Low</button>
+         </div>
+         <table class="table table-hover" id="results" >
          <markup:merge-tag>
-         <tr><th>ID</th><th>Age</th><th>Component</th><th>Trivy Severity</th><th>Grype Severity</th><th>Red Hat Severity</th></tr>
+         <thead class="thead-dark" >
+         <tr>
+         <th>ID</th>
+         <th>Age</th>
+         <th>Component</th>
+         <th>Trivy Severity</th>
+         <th>Grype Severity</th>
+         <th>Red Hat Severity</th>
+         </tr>
+         </thead>
+         <tbody>
          ,@(mapcar (lambda (vulns)
                      <markup:merge-tag>
-                     <tr class="view"><td class="no-wrap"> ,(id (car vulns)) </td><td>
-                     ,(let ((pdv (find-if (lambda (v) (published-date v)) vulns)))
-                        (if pdv
-                            (let ((age (floor
-                                        (/ (- (get-universal-time)
-                                              (local-time:timestamp-to-universal
-                                               (published-date pdv)))
-                                           (* 60.0 60.0 24.0)))))
-                              (dbi:do-sql *vuln-db*
-                                "INSERT INTO vulns (id, age, components, severity, image) VALUES (?, ?, ?, ?, ?)"
-                                (list (id (car vulns)) age (format nil "~{ ~A~}" (collect-components vulns)) (redhat-severity vulns) image-name))
-                              age)
-                            "?"))
-                     </td><td> ,(format nil "~{~A ~}" (collect-components vulns))</td><td style=(severity-style (trivy-severity vulns)) > ,(trivy-severity vulns) </td><td style=(severity-style (grype-severity vulns)) > ,(grype-severity vulns) </td><td style=(severity-style (redhat-severity vulns)) > ,(redhat-severity vulns) </td> </tr>
-                     <tr class="fold"><td colspan="6">
-                     <div>
-                     <div>
-                     ,(progn (markup:unescaped (or (get-analysis (id (car vulns)) image-name vulns) "")))
-                     </div>
-                     <h3>References:</h3>
-                     <ul>
-                     <markup:merge-tag>
-                     ,@(mapcar (lambda (url)
-                                 <li><a href=url target="_blank"> ,(progn url) </a></li>)
-                               (collect-references (id (car vulns)) vulns))
-                     </markup:merge-tag>
-                     </ul>
-                     </div>
-                     </td></tr>
+                     <tr class=(severity-class (redhat-severity vulns)) data-bs-toggle="modal" data-bs-target=(format nil "#~A-modal" (id (car vulns))) >
+                     <td> ,(id (car vulns)) </td>
+                     <td> ,(let ((pdv (find-if (lambda (v) (published-date v)) vulns)))
+                             (if pdv
+                                 (let ((age (floor
+                                             (/ (- (get-universal-time)
+                                                   (local-time:timestamp-to-universal
+                                                    (published-date pdv)))
+                                                (* 60.0 60.0 24.0)))))
+                                   (dbi:do-sql *vuln-db*
+                                               "INSERT INTO vulns (id, age, components, severity, image) VALUES (?, ?, ?, ?, ?)"
+                                               (list (id (car vulns)) age (format nil "~{ ~A~}" (collect-components vulns)) (redhat-severity vulns) image-name))
+                                   age)
+                               "?"))
+                     </td>
+                     <td> ,(format nil "~{~A ~}" (collect-components vulns)) </td>
+                     <td style=(severity-style (trivy-severity vulns)) > ,(trivy-severity vulns) </td>
+                     <td style=(severity-style (grype-severity vulns)) > ,(grype-severity vulns) </td>
+                     <td style=(severity-style (redhat-severity vulns)) > ,(redhat-severity vulns) </td>
+                     </tr>
                      </markup:merge-tag>
                      )
                    ordered-vulns)
+         </tbody>
          </markup:merge-tag>
          </table>
          </page-template>
@@ -733,7 +705,7 @@ don't mention RHEL 8.  Here's the context for your analysis:
   (dbi:disconnect *db*)
   (dbi:disconnect *vuln-db*)
 
-  (zs3:put-file *scandy-db-filename* "scandy-db" "scandy.db")
+;;  (zs3:put-file *scandy-db-filename* "scandy-db" "scandy.db")
 
   (log:info "Pushed scandy.db from S3 storage")
 
