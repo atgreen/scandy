@@ -97,3 +97,4 @@ log4cl.log4sly, ghcr.io/ocicl/log4cl@sha256:bd33f6e5ad346892e852492e7101bc18d263
 log4cl.log4slime, ghcr.io/ocicl/log4cl@sha256:bd33f6e5ad346892e852492e7101bc18d263f9ef2ba6192178568d1b20337112, log4cl-20240503-fe3da51/log4cl.log4slime.asd
 log4cl, ghcr.io/ocicl/log4cl@sha256:bd33f6e5ad346892e852492e7101bc18d263f9ef2ba6192178568d1b20337112, log4cl-20240503-fe3da51/log4cl.asd
 log4cl-examples, ghcr.io/ocicl/log4cl@sha256:bd33f6e5ad346892e852492e7101bc18d263f9ef2ba6192178568d1b20337112, log4cl-20240503-fe3da51/log4cl-examples.asd
+cl-fad, ghcr.io/ocicl/cl-fad@sha256:c0aaffc859e419e0a94cedb08f48c2484da404363fb0fe4ffd6e09a80aadafe1, cl-fad-0.7.6/cl-fad.asd

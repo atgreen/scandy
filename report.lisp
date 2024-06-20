@@ -124,18 +124,54 @@ CREATE TABLE IF NOT EXISTS prompts (
                  (string-upcase (subseq word 0 1))
                  (string-downcase (subseq word 1)))))
 
+(defun extract-cve (url)
+  (let ((pattern "CVE-\\d{4}-\\d{4,7}$")) ; Regular expression pattern for CVE-YYYY-NNNN
+    (multiple-value-bind (match start end)
+        (cl-ppcre:scan-to-strings pattern url)
+      (if match
+          match
+          nil))))
+
+(defvar *ghsa-files* nil)
+
+(defun grok-ghsa (vuln)
+  (with-slots (id published-date references description) vuln
+    (when (equal "GHSA-" (subseq id 0 5))
+      (format t  ">>> ~A~%" id)
+      (let ((ghsa (gethash id *ghsa-files*)))
+        (when ghsa
+          (let ((ghjson (json:decode-json-from-string (uiop:read-file-string ghsa))))
+            (let ((pt (cdr (assoc :PUBLISHED ghjson))))
+              (when pt
+                (setf published-date (local-time:parse-timestring pt))))
+            (print ghjson)
+            (print (cdr (assoc :REFERENCES ghjson)))
+            (let ((reference-list (cdr (assoc :REFERENCES ghjson))))
+              (dolist (reference reference-list)
+                (format t "RR: ~A~%" reference)
+                (let ((url (cdr (assoc :URL reference))))
+                  (when url
+                    (progn
+                      (push url references)
+                      (if (and (assoc :TYPE reference) (string= (cdr (assoc :TYPE reference)) "ADVISORY"))
+                          (progn
+                            (let ((cveid (extract-cve url)))
+                              (format t "XX ~A: ~A~%" reference cveid)
+                              (when cveid
+                                (setf id cveid))))))))))
+            (setf description (format nil "~A~%~%~A~%"
+                                      (or (cdr (assoc :SUMMARY ghjson)) "")
+                                      (or (cdr (assoc :DETAILS ghjson)) "")))
+            (print id)
+            (print description)))))))
+
 (defmethod initialize-instance ((vuln grype-vulnerability) &key json)
   (call-next-method)
   (with-slots (id severity component location description references) vuln
-    (let ((gid (cdr (assoc :ID (cdr (assoc :VULNERABILITY json))))))
-      (if (string= "CVE-" (subseq gid 0 4))
-          (setf id gid)
-          (let* ((related (cadr (assoc :RELATED-VULNERABILITIES json)))
-                 (rid (cdr (assoc :ID related)))
-                 (urls (cdr (assoc :URLS related))))
-            (setf id (or rid gid))
-            (setf references urls))))
-    (setf description (cdr (assoc :DESCRIPTION (cdr (assoc :VULNERABILITY json)))))
+    (setf id (cdr (assoc :ID (cdr (assoc :VULNERABILITY json)))))
+    (grok-ghsa vuln)
+    (unless description
+      (setf description (cdr (assoc :DESCRIPTION (cdr (assoc :VULNERABILITY json))))))
     (setf component (cdr (assoc :NAME (cdr (assoc :ARTIFACT json)))))
     (when (not (string= "rpm" (cdr (assoc :TYPE (cdr (assoc :ARTIFACT json))))))
       (setf location
@@ -147,14 +183,17 @@ CREATE TABLE IF NOT EXISTS prompts (
   (call-next-method)
   (with-slots (id severity published-date component title description references status) vuln
     (setf id (cdr (assoc :*VULNERABILITY-+ID+ json)))
+    (grok-ghsa vuln)
     (setf severity (capitalize-word (cdr (assoc :*SEVERITY json))))
     (setf status (cdr (assoc :*STATUS json)))
     (setf title (cdr (assoc :*TITLE json)))
-    (when (assoc :*PUBLISHED-DATE json)
-      (setf published-date (local-time:parse-timestring (cdr (assoc :*PUBLISHED-DATE json)))))
-    (setf description (cdr (assoc :*DESCRIPTION json)))
+    (unless published-date
+      (when (assoc :*PUBLISHED-DATE json)
+        (setf published-date (local-time:parse-timestring (cdr (assoc :*PUBLISHED-DATE json))))))
+    (unless description
+      (setf description (cdr (assoc :*DESCRIPTION json))))
     (setf component (cdr (assoc :*PKG-NAME json)))
-    (setf references (cdr (assoc :*REFERENCES json)))))
+    (setf references (append references (cdr (assoc :*REFERENCES json))))))
 
 (defmethod initialize-instance ((vuln redhat-vulnerability) &key json)
   (call-next-method)
@@ -613,6 +652,14 @@ don't mention RHEL 8.  Here's the context for your analysis:
            (json:decode-json-from-string (uiop:read-file-string grype-filename)))
          (trivy-json
            (json:decode-json-from-string (uiop:read-file-string trivy-filename))))
+
+
+    (setf *ghsa-files* (make-hash-table :test #'equal))
+
+    (log:info "Scanning github security advisory database")
+    (cl-fad:walk-directory "advisory-database/advisories/"
+                           (lambda (f)
+                             (setf (gethash (pathname-name f) *ghsa-files*) f)))
 
     (setf *image-name* image-name)
 
