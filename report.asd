@@ -32,4 +32,4 @@
   :components ((:file "report"))
   :depends-on (:cl-json :markup :cl-who :dexador :completions
                :local-time :dbi :ironclad :zs3 :trivial-backtrace
-               :log4cl :iterate ))
+               :log4cl :iterate :cl-fad))
