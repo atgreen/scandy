@@ -781,10 +781,9 @@ don't mention RHEL 8.  Here's the context for your analysis:
                (age (nth 3 row))
                (components (nth 5 row))
                (severity (nth 7 row))
-               (image (nth 9 row))
-               (entry (gethash id vulns)))
-          (if entry
-              (push (list age components severity image) entry)
+               (image (nth 9 row)))
+          (if (gethash id vulns)
+              (push (list age components severity image) (gethash id vulns))
               (setf (gethash id vulns) (list (list age components severity image))))))
 
       (with-open-file (stream "index.html" :direction :output
