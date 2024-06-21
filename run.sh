@@ -11,6 +11,24 @@ function cleanup {
 
 trap cleanup EXIT
 
+function retry_command {
+    local -r cmd="$@"
+    local -i attempt=0
+    local -i max_attempts=5
+    local -i sleep_time=1  # Initial backoff delay in seconds
+
+    until $cmd; do
+        attempt+=1
+        if (( attempt > max_attempts )); then
+            echo "The command has failed after $max_attempts attempts."
+            return 1
+        fi
+        echo "The command has failed. Retrying in $sleep_time seconds..."
+        sleep $sleep_time
+        sleep_time=$((sleep_time * 2))  # Double the backoff delay each time
+    done
+}
+
 function trivy_scan {
     # Perform trivy scans
     IMG=$(echo ${2} | sed 's/\//\-\-/g')
@@ -72,7 +90,7 @@ USER 0
 RUN yum -y update || microdnf -y update
 EOF
     cat Containerfile
-    podman build -t ${IMAGE}-with-updates .
+    retry_command podman build -t ${IMAGE}-with-updates .
     trivy_scan ${SCANDIR} ${IMAGE}-with-updates
     grype_scan ${SCANDIR} ${IMAGE}-with-updates
 
@@ -85,8 +103,8 @@ EOF
 
     (cd ${WORKDIR};
      tar cvfz ${IMG}-scandy.tar.gz * ;
-     oras push ghcr.io/atgreen/${IMG}:${VERSION} ${IMG}-scandy.tar.gz:application/vnd.uknown/layer.v1+gzip || true ;
-     oras tag ghcr.io/atgreen/${IMG}:${VERSION} latest || true
+     retry_command oras push ghcr.io/atgreen/${IMG}:${VERSION} ${IMG}-scandy.tar.gz:application/vnd.uknown/layer.v1+gzip;
+     retry_command oras tag ghcr.io/atgreen/${IMG}:${VERSION} latest
 
      rm -rf *
     )
