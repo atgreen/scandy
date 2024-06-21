@@ -837,6 +837,8 @@ don't mention RHEL 8.  Here's the context for your analysis:
          <li><a href="registry.redhat.io--ubi8--openjdk-8-runtime-with-updates">registry.redhat.io/ubi8/openjdk-8-runtime</a></li>
          <li><a href="registry.redhat.io--ubi8--openjdk-21-runtime-with-updates">registry.redhat.io/ubi8/openjdk-21-runtime</a></li>
          <li><a href="registry.redhat.io--ubi9--openjdk-21-runtime-with-updates">registry.redhat.io/ubi9/openjdk-21-runtime</a></li>
+         <li><a href="registry.access.redhat.com--ubi9--nodejs-18-with-updates">registry.access.redhat.com/ubi9/nodejs-18</a></li>
+         <li><a href="registry.access.redhat.com--ubi9--nodejs-20-with-updates">registry.access.redhat.com/ubi9/nodejs-20</a></li>
          <li><a href="registry.access.redhat.com--ubi8--python-39-with-updates.html">registry.access.redhat.com/ubi8/python-39</a></li>
          <li><a href="registry.access.redhat.com--ubi8--python-311-with-updates.html">registry.access.redhat.com/ubi8/python-311</a></li>
          <li><a href="registry.access.redhat.com--ubi8--python-312-with-updates.html">registry.access.redhat.com/ubi8/python-312</a></li>
