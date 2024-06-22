@@ -102,10 +102,11 @@ CREATE TABLE IF NOT EXISTS prompts (
    (title :accessor title :initform nil)
    (published-date :accessor published-date :initform nil)
    (description :accessor description :initform nil)
+   (location :accessor location :initform nil)
    (references :accessor references :initform nil)))
 
 (defclass grype-vulnerability (vulnerabilty)
-  ((location :accessor location :initform nil)))
+  ())
 
 (defclass trivy-vulnerability (vulnerabilty)
   (status))
@@ -173,9 +174,13 @@ CREATE TABLE IF NOT EXISTS prompts (
     (unless description
       (setf description (cdr (assoc :DESCRIPTION (cdr (assoc :VULNERABILITY json))))))
     (setf component (cdr (assoc :NAME (cdr (assoc :ARTIFACT json)))))
-    (when (not (string= "rpm" (cdr (assoc :TYPE (cdr (assoc :ARTIFACT json))))))
-      (setf location
-            (cdr (assoc :PATH (car (cdr (assoc :LOCATIONS (cdr (assoc :ARTIFACT json)))))))))
+    (if (not (string= "rpm" (cdr (assoc :TYPE (cdr (assoc :ARTIFACT json))))))
+        (setf location
+              (cdr (assoc :PATH (car (cdr (assoc :LOCATIONS (cdr (assoc :ARTIFACT json))))))))
+        (setf location
+              (format nil "~A-~A"
+                      (cdr (assoc :NAME (cdr (assoc :ARTIFACT json))))
+                      (cdr (assoc :VERSION (cdr (assoc :ARTIFACT json)))))))
     (setf severity (capitalize-word (cdr (assoc :SEVERITY (cdr (assoc :VULNERABILITY json))))))
     (setf references (append references (cdr (assoc :URLS (cdr (assoc :VULNERABILITY json))))))))
 
@@ -277,6 +282,16 @@ image, as it is associated with the kernel-headers package.  Kernel
                 </div>
                 <div class="modal-body">
                    ,(progn (markup:unescaped (get-analysis (id (car vulns)) *image-name* vulns)))
+                   ,(progn (let ((locations (collect-locations vulns)))
+                             (when locations
+                               <h3> Locations: </h3>
+                               <ul>
+                               <markup:merge-tag>
+                               ,@(mapcar (lambda (location)
+                                           <li> ,(progn location) </li>)
+                                         locations)
+                               </markup:merge-tag>
+                               </ul>)))
                    <h3>References:</h3>
                    <ul>
                    <markup:merge-tag>
@@ -497,6 +512,12 @@ image, as it is associated with the kernel-headers package.  Kernel
           do (setf refs (append refs (references v))))
     (sort (remove-duplicates refs :test #'string-equal) 'reference<)))
 
+(defun collect-locations (vulns)
+  (let ((locations (loop for v in vulns
+                         when (location v)
+                           collect (location v))))
+    (sort (remove-duplicates locations :test #'string-equal) 'string<)))
+
 (defun collect-components (vulns)
   (let ((components (loop for v in vulns
                           when (component v)
@@ -561,7 +582,7 @@ image, as it is associated with the kernel-headers package.  Kernel
             (return-from get-llm-response))
           (decf *count*)
           (handler-case
-              (let ((text (completions:get-completion completer prompt)))
+              (let ((text (completions:get-completion completer prompt :max-tokens 4096)))
                 (log:info "LLM response" text)
                 (dbi:do-sql *db*
                   "INSERT INTO llm_cache (prompt_hash, response) VALUES (?, ?)"
