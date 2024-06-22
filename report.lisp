@@ -284,9 +284,9 @@ image, as it is associated with the kernel-headers package.  Kernel
                    ,(progn (markup:unescaped (get-analysis (id (car vulns)) *image-name* vulns)))
                    ,(progn (let ((locations (collect-locations vulns)))
                              (when locations
+                               <markup:merge-tag>
                                <h3> Locations: </h3>
                                <ul>
-                               <markup:merge-tag>
                                ,@(mapcar (lambda (location)
                                            <li> ,(progn location) </li>)
                                          locations)
@@ -579,6 +579,7 @@ image, as it is associated with the kernel-headers package.  Kernel
           (log:info "Querying LLM" prompt-hash)
           ;; To protect against runaway LLM API usage
           (when (eq 0 *count*)
+            (log:warn "Exceeded LLM API usage limit defined by *count*")
             (return-from get-llm-response))
           (decf *count*)
           (handler-case
@@ -780,7 +781,7 @@ don't mention RHEL 8.  Here's the context for your analysis:
   (dbi:disconnect *db*)
   (dbi:disconnect *vuln-db*)
 
-  (zs3:put-file *scandy-db-filename* "scandy-db" "scandy.db")
+  ; (zs3:put-file *scandy-db-filename* "scandy-db" "scandy.db")
 
   (log:info "Pushed scandy.db from S3 storage")
 
