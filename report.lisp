@@ -640,11 +640,11 @@ section.
 Don't include references.  Don't include container specific
 considerations. Rate the impact for the version of Linux being used.
 Do not wrap the HTML text in ```.  Here is an excellent example of
-what I expect,  but be sure to replace CVE-2021-3991 with the ID of the
+what I expect,  but be sure to replace ~A with the ID of the
 actual vulnerability:
 
-  <h2>Security Advisory: CVE-2021-3997</h2>
-  <p><strong>Description:</strong> CVE-2021-3997 is a vulnerability in <code>systemd</code> related to uncontrolled recursion in <code>systemd-tmpfiles</code>. This flaw may lead to a denial of service (DoS) at boot time when too many nested directories are created in <code>/tmp</code>. This can cause the system to exhaust its stack and crash. For more details, refer to the <a href=\"https://bugzilla.redhat.com/show_bug.cgi?id=2024639\" target=\"_blank\">Red Hat Bugzilla entry</a>.</p>
+  <h2>Security Advisory: ~A</h2>
+  <p><strong>Description:</strong> ~A is a vulnerability in <code>systemd</code> related to uncontrolled recursion in <code>systemd-tmpfiles</code>. This flaw may lead to a denial of service (DoS) at boot time when too many nested directories are created in <code>/tmp</code>. This can cause the system to exhaust its stack and crash. For more details, refer to the <a href=\"https://bugzilla.redhat.com/show_bug.cgi?id=2024639\" target=\"_blank\">Red Hat Bugzilla entry</a>.</p>
 
   <h3>Risk Assessment:</h3>
   <ul>
@@ -663,7 +663,19 @@ don't mention RHEL 8.  Here's the context for your analysis:
 
 ~A~%
 
-~{ ~/report::format-llm-context/ ~}~%" (describe-container image) (describe-container image) (get-redhat-security-data id) vulns)))
+~{ ~/report::format-llm-context/ ~}~%"
+                            (describe-container image)
+                            (if (string= "CVE-" (subseq id 0 4))
+                                "CVE-2021-3997"
+                                "GHSA-m425-mq94-257g")
+                            (if (string= "CVE-" (subseq id 0 4))
+                                "CVE-2021-3997"
+                                "GHSA-m425-mq94-257g")
+                            (if (string= "CVE-" (subseq id 0 4))
+                                "CVE-2021-3997"
+                                "GHSA-m425-mq94-257g")
+                            (describe-container image)
+                            (get-redhat-security-data id) vulns)))
         (log:info prompt)
         (get-llm-response prompt))
     (error (e)
