@@ -186,7 +186,7 @@ CREATE TABLE IF NOT EXISTS prompts (
 
 (defmethod initialize-instance ((vuln trivy-vulnerability) &key json)
   (call-next-method)
-  (with-slots (id severity published-date component title description references status) vuln
+  (with-slots (id severity location published-date component title description references status) vuln
     (setf id (cdr (assoc :*VULNERABILITY-+ID+ json)))
     (grok-ghsa vuln)
     (setf severity (capitalize-word (cdr (assoc :*SEVERITY json))))
@@ -198,6 +198,8 @@ CREATE TABLE IF NOT EXISTS prompts (
     (unless description
       (setf description (cdr (assoc :*DESCRIPTION json))))
     (setf component (cdr (assoc :*PKG-NAME json)))
+    (setf location
+          (format nil "~A-~A" component (cdr (assoc :*INSTALLED-VERSION json))))
     (setf references (append references (cdr (assoc :*REFERENCES json))))))
 
 (defmethod initialize-instance ((vuln redhat-vulnerability) &key json)
@@ -290,8 +292,9 @@ image, as it is associated with the kernel-headers package.  Kernel
                                ,@(mapcar (lambda (location)
                                            <li> ,(progn location) </li>)
                                          locations)
+                               </ul>
                                </markup:merge-tag>
-                               </ul>)))
+                               )))
                    <h3>References:</h3>
                    <ul>
                    <markup:merge-tag>
@@ -452,6 +455,30 @@ image, as it is associated with the kernel-headers package.  Kernel
         function filterSeverity(severity) {
             $('#results').DataTable().search(severity).draw();
         }
+  </script>
+  <script>
+        // LLM output was not great for this.
+        // Let's filter it out rather than regenerate everything.
+        document.addEventListener("DOMContentLoaded", function() {
+            // Get all h3 elements
+            var h3Elements = document.getElementsByTagName("h3");
+            // Convert HTMLCollection to an array for easy manipulation
+            h3Elements = Array.from(h3Elements);
+
+            h3Elements.forEach(function(h3) {
+                // Check if the text content starts with "Fix state:"
+                if (h3.textContent.startsWith("Fix state:")) {
+                    // Remove the h3 element and subsequent elements until the next h3
+                    var nextElement = h3.nextElementSibling;
+                    h3.remove();
+                    while (nextElement && nextElement.tagName !== "H3") {
+                        var tempElement = nextElement.nextElementSibling;
+                        nextElement.remove();
+                        nextElement = tempElement;
+                    }
+                }
+            });
+        });
     </script>
 </body>
 </html> )
@@ -781,7 +808,7 @@ don't mention RHEL 8.  Here's the context for your analysis:
   (dbi:disconnect *db*)
   (dbi:disconnect *vuln-db*)
 
-  ; (zs3:put-file *scandy-db-filename* "scandy-db" "scandy.db")
+  (zs3:put-file *scandy-db-filename* "scandy-db" "scandy.db")
 
   (log:info "Pushed scandy.db from S3 storage")
 
@@ -835,8 +862,9 @@ don't mention RHEL 8.  Here's the context for your analysis:
                            ,@(mapcar (lambda (data)
                                        <markup:merge-tag>
                                        <li> <a href=(format nil "~A-with-updates.html"
-                                                            (ppcre:regex-replace-all "/" (ppcre:regex-replace-all ":" (fourth data) "--") "--")) > ,(progn (fourth data)) </a> </li>
-                                                            </markup:merge-tag>)
+                                                            (ppcre:regex-replace-all "/" (ppcre:regex-replace-all ":" (fourth data) "--") "--")) >
+                                            ,(progn (fourth data)) </a> </li>
+                                       </markup:merge-tag>)
                                      data-list)
                            </ul> </td>
                            </tr>
