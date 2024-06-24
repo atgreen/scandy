@@ -310,7 +310,7 @@ image, as it is associated with the kernel-headers package.  Kernel
              </markup:merge-tag>)
            *ordered-vulns*)))
 
-(markup:deftag page-template (children &key title)
+(markup:deftag page-template (children &key title index)
 <html lang="en">
 <head>
     <meta charset="utf-8">
@@ -442,20 +442,42 @@ image, as it is associated with the kernel-headers package.  Kernel
                 return d === '?' ? 999999 : parseInt(d, 10);
             };
 
-            table = $('#results').DataTable({
-                "paging": false,
-                "info": true,
-                "searching": true,
-                "order": [],
-                "columnDefs": [
-                { "type": "severity", "targets": [3, 4, 5] },
-                { "type": "age", "targets": [1] }
-                ],
-                dom: 'Bfrtip',
-                buttons: [
-                    'csv', 'pdf'
-                ]
-            });
+            ,(progn
+               (if (not (string= index "true"))
+                   (progn
+                     <markup:merge-tag>
+                     table = $('#results').DataTable({
+                                                     "paging": false,
+                                                     "info": true,
+                                                     "searching": true,
+                                                     "order": [],
+                                                     "columnDefs": [
+                                                     { "type": "severity", "targets": [3, 4, 5] },
+                                                     { "type": "age", "targets": [1] }
+                                                     ],
+                                                     dom: 'Bfrtip',
+                                                     buttons: [
+                                                     'copy', 'csv', 'pdf'
+                                                     ]
+                                                     });
+                     </markup:merge-tag>)
+                   (progn
+                     <markup:merge-tag>
+                     table = $('#results').DataTable({
+                                                     "paging": false,
+                                                     "info": true,
+                                                     "searching": true,
+                                                     "columnDefs": [
+                                                     { "type": "severity", "targets": [3] },
+                                                     { "type": "age", "targets": [1] }
+                                                     ],
+                                                     dom: 'Bfrtip',
+                                                     buttons: [
+                                                     'copy', 'csv', 'pdf'
+                                                     ]
+                                                     });
+                     </markup:merge-tag>)))
+
             $('[data-bs-toggle="tooltip"]').tooltip();
         });
 
@@ -785,7 +807,7 @@ don't mention RHEL 8.  Here's the context for your analysis:
                                               :if-exists :supersede
                                               :if-does-not-exist :create)
         (markup:write-html-to-stream
-         <page-template title="scandy">
+         <page-template title="scandy" index="false">
          <h1>,(progn image-name)</h1>
          <h2>With updates as of ,(local-time:format-timestring nil (local-time:now) :format local-time:+rfc-1123-format+) </h2>
          <div class="dt-buttons btn-group">
@@ -879,7 +901,7 @@ don't mention RHEL 8.  Here's the context for your analysis:
                                            :if-exists :supersede
                                            :if-does-not-exist :create)
         (markup:write-html-to-stream
-         <page-template title="scandy">
+         <page-template title="scandy" index="true">
          <br>
          <h2>New CVEs from the last 7 days</h2>
          <div class="form-check filter-checkbox">
