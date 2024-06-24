@@ -467,6 +467,7 @@ image, as it is associated with the kernel-headers package.  Kernel
                                                      "paging": false,
                                                      "info": true,
                                                      "searching": true,
+                                                     "order": [[1,'asc']],
                                                      "columnDefs": [
                                                      { "type": "severity", "targets": [3] },
                                                      { "type": "age", "targets": [1] }
@@ -913,7 +914,7 @@ don't mention RHEL 8.  Here's the context for your analysis:
          <table class="table table-hover" id="results">
          <markup:merge-tag>
          <thead class="thead-dark" >
-         <tr><th>ID</th><th>Age</th><th>Components</th><th>Red Hat Severity</th><th>Vulnerable Images</th></tr>
+         <tr><th>ID</th><th>Age</th><th>Components</th><th>Red Hat Severity</th><th>Images</th></tr>
          </thead>
          <tbody>
          ,@(let ((rows))
