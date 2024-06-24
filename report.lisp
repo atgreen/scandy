@@ -388,6 +388,7 @@ image, as it is associated with the kernel-headers package.  Kernel
 </head>
 <body>
     <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+        <img src="https://raw.githubusercontent.com/atgreen/scandy/main/images/scandy-32x32.png" alt="" width="30" height="30">
         <div class="container-fluid">
             <a class="navbar-brand" href="https://atgreen.github.io/scandy/">scandy</a>
         </div>
