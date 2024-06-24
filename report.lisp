@@ -376,6 +376,11 @@ image, as it is associated with the kernel-headers package.  Kernel
         .dt-buttons {
             margin-bottom: 10px;
         }
+        .filter-checkbox {
+            margin-left: 10px;
+            margin-bottom: 10px;
+            display: inline-block;
+        }
         .no-wrap {
             white-space: nowrap;
             word-break: keep-all;
@@ -416,6 +421,8 @@ image, as it is associated with the kernel-headers package.  Kernel
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
     <script>
+      var table;
+
         $(document).ready(function() {
             // Custom sorting for severity levels
             $.fn.dataTable.ext.type.order['severity-pre'] = function (d) {
@@ -435,7 +442,7 @@ image, as it is associated with the kernel-headers package.  Kernel
                 return d === '?' ? 999999 : parseInt(d, 10);
             };
 
-            $('#results').DataTable({
+            table = $('#results').DataTable({
                 "paging": false,
                 "info": true,
                 "searching": true,
@@ -455,8 +462,7 @@ image, as it is associated with the kernel-headers package.  Kernel
         function filterSeverity(severity) {
             $('#results').DataTable().search(severity).draw();
         }
-  </script>
-  <script>
+
         // LLM output was not great for this.
         // Let's filter it out rather than regenerate everything.
         document.addEventListener("DOMContentLoaded", function() {
@@ -479,6 +485,22 @@ image, as it is associated with the kernel-headers package.  Kernel
                 }
             });
         });
+
+                var filterOn = true;
+
+            $('#toggle-filter').on('click', function () {
+                filterOn = !filterOn;
+                table.draw();
+            });
+
+            $.fn.dataTable.ext.search.push(
+                function(settings, data, dataIndex) {
+                    if (!filterOn) {
+                        return true;
+                    }
+                    return data[2] !== 'kernel-headers'; // 2 is the index of the Component column
+                }
+            );
     </script>
 </body>
 </html> )
@@ -772,6 +794,12 @@ don't mention RHEL 8.  Here's the context for your analysis:
          <button class="btn" style="background-color: #ffdab9; border: 1px solid #000" onclick="filterSeverity('High')">High</button>
          <button class="btn" style="background-color: #ffffcc; border: 1px solid #000" onclick="filterSeverity('Medium')">Medium</button>
          <button class="btn" style="border: 1px solid #000" onclick="filterSeverity('Low')">Low</button>
+         <div class="form-check filter-checkbox">
+           <input class="form-check-input" type="checkbox" value="" id="toggle-filter">
+           <label class="form-check-label" for="toggle-filter">
+             Show kernel-headers
+           </label>
+         </div>
          </div>
          <table class="table table-hover" id="results" >
          <markup:merge-tag>
@@ -854,6 +882,12 @@ don't mention RHEL 8.  Here's the context for your analysis:
          <page-template title="scandy">
          <br>
          <h2>New CVEs from the last 7 days</h2>
+         <div class="form-check filter-checkbox">
+           <input class="form-check-input" type="checkbox" value="" id="toggle-filter">
+           <label class="form-check-label" for="toggle-filter">
+             Show kernel-headers
+           </label>
+         </div>
          <table class="table table-hover" id="results">
          <markup:merge-tag>
          <thead class="thead-dark" >
