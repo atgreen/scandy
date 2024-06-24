@@ -1,4 +1,4 @@
-<img src="images/candy.webp" align="right" width="150" height="150" />
+<img src="images/scandy-180x180.png" align="right" width="150" height="150" />
 
 # scandy
 > Sweet container image scans
