@@ -59,7 +59,8 @@ git clone --depth=1  https://github.com/github/advisory-database.git
 # Debugging DB connection
 sbcl --non-interactive --eval "(asdf:load-system :report)" --eval "(report::get-db-connection)" 1 2 3 4 ${GITHUB_WORKSPACE}/scandy.db || true
 
-for IMAGE in     registry.access.redhat.com/ubi9/nodejs-18 \
+for IMAGE in     registry.redhat.io/ansible-automation-platform-24/ee-supported-rhel8 \
+                 registry.access.redhat.com/ubi9/nodejs-18 \
                  registry.access.redhat.com/ubi9/nodejs-20 \
                  registry.redhat.io/jboss-eap-7/eap74-openjdk11-openshift-rhel8 \
                  registry.redhat.io/ocp-tools-4/jenkins-rhel8:v4.12.0-1716801209 \
