@@ -295,6 +295,13 @@ image, as it is associated with the kernel-headers package.  Kernel
                                </ul>
                                </markup:merge-tag>
                                )))
+                   ,(progn (let ((opinion (get-opinion (id (car vulns)) (collect-components vulns))))
+                             (when opinion
+                               <markup:merge-tag>
+                               <h3>Scandy Opinion: </h3>
+                               ,(markup:unescaped (cadr opinion))
+                               </markup:merge-tag>
+                               )))
                    <h3>References:</h3>
                    <ul>
                    <markup:merge-tag>
@@ -726,14 +733,19 @@ don't mention RHEL 8.  Here's the context for your analysis:
       (trivial-backtrace:print-condition e t)
       nil)))
 
+(defun opinion-style (opinion)
+  (if opinion
+      "background-color: #daffb9; border-top: 1px solid #eee; border-bottom: 1px solid #eee;"
+      "border-top: 1px solid #eee; border-bottom: 1px solid #eee;"))
+
 (defun severity-style (severity)
   (cond
     ((equal severity "Critical")
-     "background-color: #ffcccc; border-top: 1px solid #eee;  border-bottom: 1px solid #eee;")
+     "background-color: #ffcccc; border-top: 1px solid #eee; border-bottom: 1px solid #eee;")
     ((or (equal severity "High") (equal severity "Important"))
-     "background-color: #ffdab9; border-top: 1px solid #eee;  border-bottom: 1px solid #eee;")
+     "background-color: #ffdab9; border-top: 1px solid #eee; border-bottom: 1px solid #eee;")
     ((or (equal severity "Medium") (equal severity "Moderate"))
-     "background-color: #ffffcc; border-top: 1px solid #eee;  border-bottom: 1px solid #eee;")
+     "background-color: #ffffcc; border-top: 1px solid #eee; border-bottom: 1px solid #eee;")
     (t "")))
 
 (defun severity-class (severity)
@@ -833,33 +845,36 @@ don't mention RHEL 8.  Here's the context for your analysis:
          <th>Trivy Severity</th>
          <th>Grype Severity</th>
          <th>Red Hat Severity</th>
+         <th>Scandy Opinion</th>
          </tr>
          </thead>
          <tbody>
          ,@(mapcar (lambda (vulns)
-                     <markup:merge-tag>
-                     <tr class=(severity-class (redhat-severity vulns)) data-bs-toggle="modal" data-bs-target=(format nil "#~A-modal" (id (car vulns))) >
-                     <td class="no-wrap"> ,(id (car vulns)) </td>
-                     <td> ,(let ((pdv (find-if (lambda (v) (published-date v)) vulns)))
-                             (if pdv
-                                 (let ((age (floor
-                                             (/ (- (get-universal-time)
-                                                   (local-time:timestamp-to-universal
-                                                    (published-date pdv)))
-                                                (* 60.0 60.0 24.0)))))
-                                   (dbi:do-sql *vuln-db*
-                                               "INSERT INTO vulns (id, age, components, severity, image) VALUES (?, ?, ?, ?, ?)"
-                                               (list (id (car vulns)) age (format nil "~{ ~A~}" (collect-components vulns)) (redhat-severity vulns) image-name))
-                                   age)
-                               "?"))
-                     </td>
-                     <td> ,(format nil "~{~A ~}" (collect-components vulns)) </td>
-                     <td style=(severity-style (trivy-severity vulns)) > ,(trivy-severity vulns) </td>
-                     <td style=(severity-style (grype-severity vulns)) > ,(grype-severity vulns) </td>
-                     <td style=(severity-style (redhat-severity vulns)) > ,(redhat-severity vulns) </td>
-                     </tr>
-                     </markup:merge-tag>
-                     )
+                     (let ((opinion (get-opinion (id (car vulns)) (collect-components vulns))))
+                       <markup:merge-tag>
+                       <tr class=(severity-class (redhat-severity vulns)) data-bs-toggle="modal" data-bs-target=(format nil "#~A-modal" (id (car vulns))) >
+                       <td class="no-wrap"> ,(id (car vulns)) </td>
+                       <td> ,(let ((pdv (find-if (lambda (v) (published-date v)) vulns)))
+                               (if pdv
+                                   (let ((age (floor
+                                               (/ (- (get-universal-time)
+                                                     (local-time:timestamp-to-universal
+                                                      (published-date pdv)))
+                                                  (* 60.0 60.0 24.0)))))
+                                     (dbi:do-sql *vuln-db*
+                                       "INSERT INTO vulns (id, age, components, severity, image) VALUES (?, ?, ?, ?, ?)"
+                                       (list (id (car vulns)) age (format nil "~{ ~A~}" (collect-components vulns)) (redhat-severity vulns) image-name))
+                                     age)
+                                   "?"))
+                       </td>
+                       <td> ,(format nil "~{~A ~}" (collect-components vulns)) </td>
+                       <td style=(severity-style (trivy-severity vulns)) > ,(trivy-severity vulns) </td>
+                       <td style=(severity-style (grype-severity vulns)) > ,(grype-severity vulns) </td>
+                       <td style=(severity-style (redhat-severity vulns)) > ,(redhat-severity vulns) </td>
+                       <td style=(opinion-style opinion) > ,(if opinion (car opinion) "") </td>
+                       </tr>
+                       </markup:merge-tag>
+                       ))
                    ordered-vulns)
          </tbody>
          </markup:merge-tag>

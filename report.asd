@@ -29,7 +29,7 @@
   :license "MIT"
   :version "1.0"
   :serial t
-  :components ((:file "report"))
+  :components ((:file "report") (:file "opinion"))
   :depends-on (:cl-json :markup :cl-who :dexador :completions
                :local-time :dbi :ironclad :zs3 :trivial-backtrace
                :log4cl :iterate :cl-fad))
