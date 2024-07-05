@@ -31,6 +31,13 @@
      '("Ignoreable"
        "This is a junk CVE that is not a security issue and was withdrawn by its CNA.  Consider a global exception policy for this CVE."))
 
+    ((equal components '("httpd" "httpd-core" "httpd-devel" "httpd-filesystem" "httpd-tools" "mod_ldap" "mod_lua" "mod_session" "mod_ssl"))
+     '("Removable"
+       "A number of UBI images, including the Python UBI images include httpd and related packages which may not be required, even when running web services (eg. via Flask).  Consider removing these packages like so:
+<pre>
+RUN rpm -e httpd httpd-core httpd-devel httpd-filesystem httpd-tools mod_ldap mod_lua mod_session mod_ssl mod_auth_gssapi mod_http2
+</pre>"))
+
     ((or (string= cve "CVE-2023-2222") (string= cve "CVE-2019-1010022"))
      '("Ignoreable"
        "This is a junk CVE rejected by upstream.  Consider a global exception policy for this CVE."))
@@ -61,7 +68,7 @@ build software that interfaces with the kernel.  Consider a
 global exception for this vulnerability."))
 
     ((equal components '("less"))
-     '("Removeable"
+     '("Removable"
        "The <code>less</code> package is often only dragged into a container image as a dependency of <code>git-core</code>.  If this is the case for your image, consider removing <code>less</code> like so:
 <pre>
 RUN rpm -e --nodeps less
@@ -69,7 +76,7 @@ RUN rpm -e --nodeps less
 When present, <code>git</code> will use <code>less</code> to page the output of logs to a terminal for interactive use; something that is not typically required in containerized applications.  <code>git</code> will just cat log output instead of paging it once <code>less</code> is removed."))
 
     ((equal components '("openssh" "openssh-clients"))
-     '("Removeable"
+     '("Removable"
        "The <code>openssh</code> and <code>openssh-clients</code> are often only dragged
 into container images as dependencies of <code>git-core</code>.  You can safely remove
 these packages from your container image if this is the case and you are not using ssh-based authentication with <code>git</code> (for instance, you may be using token-based authentication).  Remove these packages like so:
