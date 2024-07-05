@@ -295,7 +295,7 @@ image, as it is associated with the kernel-headers package.  Kernel
                                </ul>
                                </markup:merge-tag>
                                )))
-                   ,(progn (let ((opinion (get-opinion (id (car vulns)) (collect-components vulns))))
+                   ,(progn (let ((opinion (get-opinion (id (car vulns)) (collect-components vulns) (collect-locations vulns))))
                              (when opinion
                                <markup:merge-tag>
                                <h3>Scandy Opinion: </h3>
@@ -850,7 +850,7 @@ don't mention RHEL 8.  Here's the context for your analysis:
          </thead>
          <tbody>
          ,@(mapcar (lambda (vulns)
-                     (let ((opinion (get-opinion (id (car vulns)) (collect-components vulns))))
+                     (let ((opinion (get-opinion (id (car vulns)) (collect-components vulns) (collect-locations vulns))))
                        <markup:merge-tag>
                        <tr class=(severity-class (redhat-severity vulns)) data-bs-toggle="modal" data-bs-target=(format nil "#~A-modal" (id (car vulns))) >
                        <td class="no-wrap"> ,(id (car vulns)) </td>

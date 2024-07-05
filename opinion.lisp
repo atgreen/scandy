@@ -25,8 +25,21 @@
 
 (in-package :report)
 
-(defun get-opinion (cve components)
+(defun get-opinion (cve image components locations)
   (cond
+    ((string= cve "CVE-2023-2004")
+     '("Ignoreable"
+       "This is a junk CVE that is not a security issue and was withdrawn by its CNA.  Consider a global exception policy for this CVE."))
+
+    ((or (string= cve "CVE-2023-2222") (string= cve "CVE-2019-1010022"))
+     '("Ignoreable"
+       "This is a junk CVE rejected by upstream.  Consider a global exception policy for this CVE."))
+
+    ((and (string= cve "CVE-2024-23652")
+          (equal locations '("/usr/bin/oc" "github.com/moby/buildkit-v0.0.0-20181107081847-c3a857e3fca0")))
+     '("Ignoreable"
+       "The scanner is detecting the use of the vulnerable buildkit project version in <code>/usr/bin/oc</code>.  However, <code>oc</code> does not include the vulnerable parts of buildkit and is not affected by this vulnerability.  Consider an exception policy for this CVE as it relates to the <code>oc</code> command."))
+
     ((equal components '("emacs-filesystem"))
      '("Ignoreable"
        "This vulnerability exists in <code>emacs</code>, but Red Hat's policy is to taint
