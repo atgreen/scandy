@@ -28,7 +28,7 @@
 (defun get-opinion (cve components locations)
   (cond
     ((string= cve "CVE-2023-2004")
-     '("Ignoreable"
+     '("Ignorable"
        "This is a junk CVE that is not a security issue and was withdrawn by its CNA.  Consider a global exception policy for this CVE."))
 
     ((equal components '("httpd" "httpd-core" "httpd-devel" "httpd-filesystem" "httpd-tools" "mod_ldap" "mod_lua" "mod_session" "mod_ssl"))
@@ -39,16 +39,16 @@ RUN rpm -e httpd httpd-core httpd-devel httpd-filesystem httpd-tools mod_ldap mo
 </pre>"))
 
     ((or (string= cve "CVE-2023-2222") (string= cve "CVE-2019-1010022"))
-     '("Ignoreable"
+     '("Ignorable"
        "This is a junk CVE rejected by upstream.  Consider a global exception policy for this CVE."))
 
     ((and (string= cve "CVE-2024-23652")
           (equal locations '("/usr/bin/oc" "github.com/moby/buildkit-v0.0.0-20181107081847-c3a857e3fca0")))
-     '("Ignoreable"
+     '("Ignorable"
        "The scanner is detecting the use of the vulnerable buildkit project version in <code>/usr/bin/oc</code>.  However, <code>oc</code> does not include the vulnerable parts of buildkit and is not affected by this vulnerability.  Consider an exception policy for this CVE as it relates to the <code>oc</code> command."))
 
     ((equal components '("emacs-filesystem"))
-     '("Ignoreable"
+     '("Ignorable"
        "This vulnerability exists in <code>emacs</code>, but Red Hat's policy is to taint
 every subpackage built from the vulnerable source package with the
 same vulnerability.  In this case, however,
@@ -59,7 +59,7 @@ Consider a global exception for this vulnerability when
 <code>emacs</code> is not installed in your container image."))
 
     ((equal components '("kernel-headers"))
-     '("Ignoreable"
+     '("Ignorable"
        "This vulnerability exists in the Linux <code>kernel</code>, but Red Hat's policy is to taint
 every subpackage built from the vulnerable source package with the
 same vulnerability.  In this case, however,
