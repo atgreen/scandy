@@ -25,7 +25,7 @@
 
 (in-package :report)
 
-(defun get-opinion (cve image components locations)
+(defun get-opinion (cve components locations)
   (cond
     ((string= cve "CVE-2023-2004")
      '("Ignoreable"
