@@ -51,10 +51,15 @@ RUN rpm -e httpd httpd-core httpd-devel httpd-filesystem httpd-tools mod_ldap mo
      '("Ignorable"
        "This is a junk CVE rejected by upstream.  Consider a global exception policy for this CVE."))
 
-    ((and (string= cve "CVE-2024-23652")
+    ((and (string= cve "CVE-2023-49569")
+          (equal locations '("/usr/bin/oc" "github.com/go-git/go-git/v5-v5.3.0")))
+     '("False Positive"
+       "The scanner is detecting the use of a vulnerable go-git project version in <code>/usr/bin/oc</code>.  However, <code>oc</code> does not include the vulnerable parts of that project.  It only uses <code>go-git</code> string formatting code that is pulled in as a transitive dependency, and is not affected by this vulnerability.  Consider an exception policy for this CVE as it relates to the <code>oc</code> command."))
+
+    ((and (or (string= cve "CVE-2024-23652") (string= cve "CVE-2024-23653"))
           (equal locations '("/usr/bin/oc" "github.com/moby/buildkit-v0.0.0-20181107081847-c3a857e3fca0")))
-     '("Ignorable"
-       "The scanner is detecting the use of the vulnerable buildkit project version in <code>/usr/bin/oc</code>.  However, <code>oc</code> does not include the vulnerable parts of buildkit and is not affected by this vulnerability.  Consider an exception policy for this CVE as it relates to the <code>oc</code> command."))
+     '("False Positive"
+       "The scanner is detecting the use of a vulnerable moby project version in <code>/usr/bin/oc</code>.  However, <code>oc</code> does not include the vulnerable buildkit parts of moby, and is not affected by this vulnerability.  Consider an exception policy for this CVE as it relates to the <code>oc</code> command."))
 
     ((equal components '("emacs-filesystem"))
      '("Ignorable"
