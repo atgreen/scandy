@@ -67,12 +67,6 @@ CREATE TABLE IF NOT EXISTS rhcve (
     cve TEXT PRIMARY KEY,
     content TEXT
 )")
-          ;; Create LLM cache
-          (dbi:do-sql *db* "
-CREATE TABLE IF NOT EXISTS llm_cache (
-    prompt_hash TEXT PRIMARY KEY,
-    response TEXT
-)")
           ;; Create per-run vulnerability db
           (dbi:do-sql *vuln-db* "
 CREATE TABLE IF NOT EXISTS vulns (
@@ -81,12 +75,6 @@ CREATE TABLE IF NOT EXISTS vulns (
     components TEXT,
     severity TEXT,
     image TEXT
-)")
-            ;; Create prompt log (for debugging)
-          (dbi:do-sql *db* "
-CREATE TABLE IF NOT EXISTS prompts (
-    prompt_hash TEXT PRIMARY KEY,
-    prompt TEXT
 )"))
       (error (e)
         (trivial-backtrace:print-condition e t)))
@@ -204,58 +192,16 @@ CREATE TABLE IF NOT EXISTS prompts (
 
 (defmethod initialize-instance ((vuln redhat-vulnerability) &key json)
   (call-next-method)
-  (with-slots (id severity published-date component) vuln
+  (with-slots (id severity published-date component description) vuln
     (setf id (cdr (assoc :NAME json)))
     (setf severity (capitalize-word (cdr (assoc :THREAT--SEVERITY json))))
+    (setf description (let ((d ""))
+                        (loop for p in (cdr (assoc :DETAILS json))
+                              do (setf d (concatenate 'string d "<p>" p "</p>")))
+                        d))
     (setf references (cdr (assoc :REFERENCES json)))
     (setf published-date (local-time:parse-timestring (cdr (assoc :PUBLIC--DATE json))))
     (setf title (cdr (assoc :DESCRIPTION (cdr (assoc :BUGZILLA json)))))))
-
-(defmethod llm-context ((vuln vulnerabilty))
-  (if (string= (component vuln) "kernel-headers")
-      "This vulnerability is unlikely to be relevant for this container
-image, as it is associated with the kernel-headers package.  Kernel
- CVEs taint the kernel-headers package when the real vulnerability
- exists in the host kernel, not the container image."
-      ""))
-
-(defmethod llm-context ((vuln redhat-vulnerability))
-  (call-next-method)
-  (with-output-to-string (stream)
-    (when (title vuln)
-      (format stream "Title: ~A.~%" (title vuln)))
-    (when (description vuln)
-      (format stream "Description: ~A.~%" (description vuln)))
-    (when (component vuln)
-      (format stream "Component: ~A.~%" (component vuln)))
-    (format stream "Red Hat assigned this vulnerability a severity of ~A. ~%" (severity vuln))))
-
-(defmethod llm-context ((vuln grype-vulnerability))
-  (call-next-method)
-  (with-output-to-string (stream)
-    (when (title vuln)
-      (format stream "Title: ~A.~%" (title vuln)))
-    (when (description vuln)
-      (format stream "Description: ~A.~%" (description vuln)))
-    (when (component vuln)
-      (format stream "Component: ~A.~%" (component vuln)))
-    (when (location vuln)
-      (format stream "The grype container scanner believes that this vulnerability exists at this location: ~A.~%"
-              (location vuln)))
-    (format stream "The grype container scanner believes the severity for this vulnerability is ~A. ~%"
-            (severity vuln))))
-
-(defmethod llm-context ((vuln trivy-vulnerability))
-  (call-next-method)
-  (with-output-to-string (stream)
-    (when (title vuln)
-      (format stream "Title: ~A.~%" (title vuln)))
-    (when (description vuln)
-      (format stream "Description: ~A.~%" (description vuln)))
-    (when (component vuln)
-      (format stream "Component: ~A.~%" (component vuln)))
-    (format stream "The trivy container scanner believes the severity for this vulnerability is ~A. ~%"
-            (severity vuln))))
 
 (defun grype-severity (vulns)
   (let ((v (find-if (lambda (v) (eq (type-of v) 'grype-vulnerability)) vulns)))
@@ -268,6 +214,16 @@ image, as it is associated with the kernel-headers package.  Kernel
 (defun redhat-severity (vulns)
   (let ((v (find-if (lambda (v) (eq (type-of v) 'redhat-vulnerability)) vulns)))
     (when v (severity v))))
+
+(defun get-description (vulns)
+  (let ((v (find-if (lambda (v) (eq (type-of v) 'redhat-vulnerability)) vulns)))
+    (if v
+        (description v)
+        (let ((v (find-if (lambda (v) (eq (type-of v) 'trivy-vulnerability)) vulns)))
+          (if v
+              (description v)
+              (let ((v (find-if (lambda (v) (eq (type-of v) 'grype-vulnerability)) vulns)))
+                (description v)))))))
 
 (defvar *ordered-vulns* nil)
 
@@ -283,39 +239,40 @@ image, as it is associated with the kernel-headers package.  Kernel
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                   ,(progn (markup:unescaped (get-analysis (id (car vulns)) *image-name* vulns)))
-                   ,(progn (let ((locations (collect-locations vulns)))
-                             (when locations
-                               <markup:merge-tag>
-                               <h3> Locations: </h3>
-                               <ul>
-                               ,@(mapcar (lambda (location)
-                                           <li> ,(progn location) </li>)
-                                         locations)
-                               </ul>
-                               </markup:merge-tag>
-                               )))
-                   ,(progn (let ((opinion (get-opinion (id (car vulns)) (collect-components vulns) (collect-locations vulns))))
-                             (when opinion
-                               <markup:merge-tag>
-                               <h3>Scandy Opinion: </h3>
-                               ,(markup:unescaped (cadr opinion))
-                               </markup:merge-tag>
-                               )))
-                   <h3>References:</h3>
-                   <ul>
-                   <markup:merge-tag>
-                   ,@(mapcar (lambda (url)
-                               <li><a href=url target="_blank"> ,(progn url) </a></li>)
-                             (collect-references (id (car vulns)) vulns))
-                   </markup:merge-tag>
-                   </ul>
+                <h2>Security Advisory: ,(progn (id (car vulns))) </h2>
+                <h3>Description:</h3> ,(markup:unescaped (get-description vulns))
+                ,(progn (let ((locations (collect-locations vulns)))
+                          (when locations
+                            <markup:merge-tag>
+                            <h3> Locations: </h3>
+                            <ul>
+                            ,@(mapcar (lambda (location)
+                                        <li> ,(progn location) </li>)
+                                      locations)
+                            </ul>
+                            </markup:merge-tag>
+                            )))
+                ,(progn (let ((opinion (get-opinion (id (car vulns)) (collect-components vulns) (collect-locations vulns))))
+                          (when opinion
+                            <markup:merge-tag>
+                            <h3>Scandy Opinion: </h3>
+                            ,(markup:unescaped (cadr opinion))
+                            </markup:merge-tag>
+                            )))
+                <h3>References:</h3>
+                <ul>
+                <markup:merge-tag>
+                ,@(mapcar (lambda (url)
+                            <li><a href=url target="_blank"> ,(progn url) </a></li>)
+                          (collect-references (id (car vulns)) vulns))
+                </markup:merge-tag>
+                </ul>
                 </div>
-             </div>
-             </div>
-             </div>
-             </markup:merge-tag>)
-           *ordered-vulns*)))
+                </div>
+                </div>
+                </div>
+                </markup:merge-tag>)
+            *ordered-vulns*)))
 
 (markup:deftag page-template (children &key title index)
 <html lang="en">
@@ -410,8 +367,7 @@ image, as it is associated with the kernel-headers package.  Kernel
     <footer class="footer">
         <div class="container">
              <div class="text-center py-3">&copy; 2024 <a href="https://linkedin.com/in/green">Anthony Green</a></div>
-  <p>Scandy is an experiment, and includes <b>LLM-generated</b> risk assessment content that should be cross-checked for accuracy!
-  Scandy source code is available at <a href="https://github.com/atgreen/scandy">https://github.com/atgreen/scandy</a> and is distributed under the terms of the MIT license.  See Scandy source files for details.</p>
+  <p>Scandy is an experiment, the source code for which is available at <a href="https://github.com/atgreen/scandy">https://github.com/atgreen/scandy</a> and is distributed under the terms of the MIT license.  See Scandy source files for details.</p>
         </div>
     </footer>
     <modals-template>
@@ -492,37 +448,14 @@ image, as it is associated with the kernel-headers package.  Kernel
             $('#results').DataTable().search(severity).draw();
         }
 
-        // LLM output was not great for this.
-        // Let's filter it out rather than regenerate everything.
-        document.addEventListener("DOMContentLoaded", function() {
-            // Get all h3 elements
-            var h3Elements = document.getElementsByTagName("h3");
-            // Convert HTMLCollection to an array for easy manipulation
-            h3Elements = Array.from(h3Elements);
+        var filterOn = true;
 
-            h3Elements.forEach(function(h3) {
-                // Check if the text content starts with "Fix state:"
-                if (h3.textContent.startsWith("Fix state:")) {
-                    // Remove the h3 element and subsequent elements until the next h3
-                    var nextElement = h3.nextElementSibling;
-                    h3.remove();
-                    while (nextElement && nextElement.tagName !== "H3") {
-                        var tempElement = nextElement.nextElementSibling;
-                        nextElement.remove();
-                        nextElement = tempElement;
-                    }
-                }
-            });
-        });
-
-                var filterOn = true;
-
-            $('#toggle-filter').on('click', function () {
+        $('#toggle-filter').on('click', function () {
                 filterOn = !filterOn;
                 table.draw();
             });
 
-            $.fn.dataTable.ext.search.push(
+        $.fn.dataTable.ext.search.push(
                 function(settings, data, dataIndex) {
                     if (!filterOn) {
                         return true;
@@ -639,99 +572,6 @@ image, as it is associated with the kernel-headers package.  Kernel
    (ironclad:digest-sequence :md5
                              (babel:string-to-octets string
                                                      :encoding :utf-8))))
-
-(defun get-llm-response (prompt &optional (model "gpt-3.5-turbo"))
-  (let* ((prompt-hash (string-digest prompt))
-         (response (cadr (assoc :|response|
-                                (dbi:fetch-all
-                                 (dbi:execute
-                                  (dbi:prepare *db* "SELECT response from llm_cache WHERE prompt_hash = ?")
-                                  (list prompt-hash)))))))
-    (if response
-        (progn
-          (log:info "Found cached LLM response" prompt-hash)
-          response)
-        (let ((completer (make-instance 'completions:openai-completer
-                                        :model model
-                                        :api-key (uiop:getenv "LLM_API_KEY"))))
-          (log:info "Querying LLM" prompt-hash)
-          ;; To protect against runaway LLM API usage
-          (when (eq 0 *count*)
-            (log:warn "Exceeded LLM API usage limit defined by *count*")
-            (return-from get-llm-response))
-          (decf *count*)
-          (handler-case
-              (let ((text (completions:get-completion completer prompt :max-tokens 4096)))
-                (log:info "LLM response" text)
-                (dbi:do-sql *db*
-                  "INSERT INTO llm_cache (prompt_hash, response) VALUES (?, ?)"
-                  (list prompt-hash text))
-                (dbi:do-sql *db*
-                  "INSERT INTO prompts (prompt_hash, prompt) VALUES (?, ?)"
-                  (list prompt-hash prompt))
-                text)
-            (dex:http-request-bad-request ()
-              ;; We may have exceeded gpt-3.5-turbo token limit,
-              ;; in which case we'll try the more expensive gpt-4o.
-              (when (string= model "gpt-3.5-turbo")
-                (get-llm-response prompt "gpt-4o"))))))))
-
-(defun format-llm-context (stream vuln a b)
-  (format stream "~A" (llm-context vuln)))
-
-(defun get-analysis (id image vulns)
-  (handler-case
-      (let ((prompt (format nil "
-You are a cyber security analyst.  My ~A container image was
-flagged with a CVE.  Respond with a short description of this
-CVE, and a risk assessment for containers based on this image.
-Respond in HTML format suitable for including directly in a <div>
-section.
-
-Don't include references.  Don't include container specific
-considerations. Rate the impact for the version of Linux being used.
-Do not wrap the HTML text in ```.  Here is an excellent example of
-what I expect,  but be sure to replace ~A with the ID of the
-actual vulnerability:
-
-  <h2>Security Advisory: ~A</h2>
-  <p><strong>Description:</strong> ~A is a vulnerability in <code>systemd</code> related to uncontrolled recursion in <code>systemd-tmpfiles</code>. This flaw may lead to a denial of service (DoS) at boot time when too many nested directories are created in <code>/tmp</code>. This can cause the system to exhaust its stack and crash. For more details, refer to the <a href=\"https://bugzilla.redhat.com/show_bug.cgi?id=2024639\" target=\"_blank\">Red Hat Bugzilla entry</a>.</p>
-
-  <h3>Risk Assessment:</h3>
-  <ul>
-    <li><strong>Red Hat Enterprise Linux 8 Impact:</strong> Rated as low due to the default 1024 nofile limit, which prevents <code>systemd-tmpfiles</code> from exhausting its stack and crashing.</li>
-    <li><strong>Mitigations:</strong> No direct mitigation provided by Red Hat. Regular updates and adherence to best practices for container security are recommended.</li>
-  </ul>
-
-  <h3>Fix state: Will not fix</h3>
-
-If the context below includes location information, mention that location in your assessment.
-
-Here's some data for context.  Note that it includes the vulnerability ID that you
-should use in your risk assessment.  Also, you only need to provide a risk assessment
-that's relevant for my ~A container image.  So, for instance, if I have a RHEL 9 container image,
-don't mention RHEL 8.  Here's the context for your analysis:
-
-~A~%
-
-~{ ~/report::format-llm-context/ ~}~%"
-                            (describe-container image)
-                            (if (string= "CVE-" (subseq id 0 4))
-                                "CVE-2021-3997"
-                                "GHSA-m425-mq94-257g")
-                            (if (string= "CVE-" (subseq id 0 4))
-                                "CVE-2021-3997"
-                                "GHSA-m425-mq94-257g")
-                            (if (string= "CVE-" (subseq id 0 4))
-                                "CVE-2021-3997"
-                                "GHSA-m425-mq94-257g")
-                            (describe-container image)
-                            (get-redhat-security-data id) vulns)))
-        (log:info prompt)
-        (get-llm-response prompt))
-    (error (e)
-      (trivial-backtrace:print-condition e t)
-      nil)))
 
 (defun opinion-style (opinion)
   (if opinion

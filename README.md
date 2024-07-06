@@ -10,9 +10,6 @@ for details.
 
 Reports are available here: https://atgreen.github.io/scandy/
 
-The risk assessment reports include experimental LLM-generated content
-and should be cross-checked for accuracy!
-
 The raw scan results data is archived as OCI artifacts in the github
 OCI registry, and are available for download using
 [`oras`](https://oras.land).  See the complete list here:
