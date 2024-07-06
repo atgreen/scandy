@@ -40,7 +40,8 @@
      '("Ignorable"
        "This is a junk CVE that is not a security issue and was withdrawn by its CNA.  Consider a global exception policy for this CVE."))
 
-    ((equal components '("httpd" "httpd-core" "httpd-devel" "httpd-filesystem" "httpd-tools" "mod_ldap" "mod_lua" "mod_session" "mod_ssl"))
+    ((or (equal components '("httpd" "httpd-core" "httpd-devel" "httpd-filesystem" "httpd-tools" "mod_ldap" "mod_lua" "mod_session" "mod_ssl"))
+         (equal components '("httpd" "httpd-devel" "httpd-filesystem" "httpd-tools" "mod_http2" "mod_ldap" "mod_session" "mod_ssl")))
      '("Removable"
        "A number of UBI images, including the Python UBI images, include <code>httpd</code> and related packages.  These packages may not be required by your application, even when running web services (eg. via Flask).  Consider removing these packages like so:
 <pre>
