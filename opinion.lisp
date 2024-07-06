@@ -40,6 +40,13 @@
      '("Ignorable"
        "This is a junk CVE that is not a security issue and was withdrawn by its CNA.  Consider a global exception policy for this CVE."))
 
+    ((equal components '("mod_http2"))
+     '("Removable"
+       "You can remove this from your application container if you aren't serving http2 content with <code>httpd</code>.  Consider removing this package like so:
+<pre>
+RUN rpm -e mod_http2
+</pre>"))
+
     ((or (equal components '("httpd" "httpd-core" "httpd-devel" "httpd-filesystem" "httpd-tools" "mod_ldap" "mod_lua" "mod_session" "mod_ssl"))
          (equal components '("httpd" "httpd-devel" "httpd-filesystem" "httpd-tools" "mod_http2" "mod_ldap" "mod_session" "mod_ssl")))
      '("Removable"
