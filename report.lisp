@@ -29,24 +29,16 @@
 
 (in-package :report)
 
-(setf zs3:*credentials* (list (uiop:getenv "AWS_ACCESS_KEY")
-                              (uiop:getenv "AWS_SECRET_KEY")))
-
 (defvar *image-name*)
 (defvar *scandy-db-filename* )
 (defvar *vuln-db* nil)
 (defvar *db* nil)
-
-(unless (zs3:bucket-exists-p "scandy-db")
-  (zs3:create-bucket "scandy-db"))
 
 (markup:enable-reader)
 
 (defun get-db-connection ()
   (let ((db-name (fifth (uiop:command-line-arguments))))
     (setf *scandy-db-filename* db-name)
-    (zs3:get-file "scandy-db" "scandy.db" db-name)
-    (log:info "Pulled scandy.db from S3 storage" db-name)
     (log:info "DB file exists?" (uiop:file-exists-p db-name))
     (setf *vuln-db* (handler-case
                         (dbi:connect :sqlite3 :database-name "vuln.db")
@@ -126,7 +118,6 @@ CREATE TABLE IF NOT EXISTS vulns (
 (defun grok-ghsa (vuln)
   (with-slots (id published-date references description) vuln
     (when (equal "GHSA-" (subseq id 0 5))
-      (format t  ">>> ~A~%" id)
       (let ((ghsa (gethash id *ghsa-files*)))
         (when ghsa
           (let ((ghjson (json:decode-json-from-string (uiop:read-file-string ghsa))))
@@ -145,14 +136,22 @@ CREATE TABLE IF NOT EXISTS vulns (
                       (if (and (assoc :TYPE reference) (string= (cdr (assoc :TYPE reference)) "ADVISORY"))
                           (progn
                             (let ((cveid (extract-cve url)))
-                              (format t "XX ~A: ~A~%" reference cveid)
                               (when cveid
                                 (setf id cveid))))))))))
-            (setf description (format nil "~A~%~%~A~%"
-                                      (or (cdr (assoc :SUMMARY ghjson)) "")
-                                      (or (cdr (assoc :DETAILS ghjson)) "")))
-            (print id)
-            (print description)))))))
+            (setf description (with-output-to-string (stream)
+                                (3bmd:parse-string-and-print-to-stream
+                                 (format nil "~A~%~%~A~%"
+                                         (or (cdr (assoc :SUMMARY ghjson)) "")
+                                         (or (cdr (assoc :DETAILS ghjson)) ""))
+                                 stream)))))))))
+
+(defun replace-newlines-with-br (input-string)
+  "Replace newlines in INPUT-STRING with <br>."
+  (with-output-to-string (out)
+    (loop for char across input-string do
+         (if (char= char #\Newline)
+             (write-string "<br>" out)
+             (write-char char out)))))
 
 (defmethod initialize-instance ((vuln grype-vulnerability) &key json)
   (call-next-method)
@@ -197,7 +196,7 @@ CREATE TABLE IF NOT EXISTS vulns (
     (setf severity (capitalize-word (cdr (assoc :THREAT--SEVERITY json))))
     (setf description (let ((d ""))
                         (loop for p in (cdr (assoc :DETAILS json))
-                              do (setf d (concatenate 'string d "<p>" p "</p>")))
+                              do (setf d (concatenate 'string d "<p>" (replace-newlines-with-br (cl-who:escape-string p)) "</p>")))
                         d))
     (setf references (cdr (assoc :REFERENCES json)))
     (setf published-date (local-time:parse-timestring (cdr (assoc :PUBLIC--DATE json))))
@@ -724,10 +723,6 @@ CREATE TABLE IF NOT EXISTS vulns (
 
   (dbi:disconnect *db*)
   (dbi:disconnect *vuln-db*)
-
-  (zs3:put-file *scandy-db-filename* "scandy-db" "scandy.db")
-
-  (log:info "Pushed scandy.db from S3 storage")
 
   (sb-ext:quit))
 
