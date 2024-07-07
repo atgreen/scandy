@@ -66,6 +66,10 @@ git clone --depth=1  https://github.com/github/advisory-database.git
 sbcl --non-interactive --eval "(asdf:load-system :report)" --eval "(report::get-db-connection)" 1 2 3 4 ${GITHUB_WORKSPACE}/scandy.db || true
 
 for IMAGE in     registry.redhat.io/ansible-automation-platform-24/ee-supported-rhel8 \
+                 registry.redhat.io/ubi8/dotnet-80 \
+                 registry.redhat.io/ubi8/dotnet-60 \
+                 registry.redhat.io/ubi8/dotnet-80-runtime \
+                 registry.redhat.io/ubi8/dotnet-60-runtime \
                  registry.access.redhat.com/ubi9/nodejs-18 \
                  registry.access.redhat.com/ubi9/nodejs-20 \
                  registry.redhat.io/jboss-eap-7/eap74-openjdk11-openshift-rhel8 \

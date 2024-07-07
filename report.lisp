@@ -815,6 +815,10 @@ CREATE TABLE IF NOT EXISTS vulns (
          <li><a href="registry.access.redhat.com--ubi9--python-312-with-updates.html">registry.access.redhat.com/ubi9/python-312</a></li>
          <li><a href="registry.redhat.io--jboss-eap-7--eap74-openjdk11-openshift-rhel8-with-updates.html">registry.redhat.io/jboss-eap-7/eap74-openjdk11-openshift-rhel8</a></li>
          <li><a href="registry.redhat.io--jboss-eap-7--eap74-openjdk11-runtime-openshift-rhel8-with-updates.html">registry.redhat.io/jboss-eap-7/eap74-openjdk11-runtime-openshift-rhel8</a></li>
+         <li><a href="registry.redhat.io--ubi8--dotnet-80-with-updates.html">registry.redhat.io/ubi8/dotnet-80</a></li>
+         <li><a href="registry.redhat.io--ubi8--dotnet-60-with-updates.html">registry.redhat.io/ubi8/dotnet-60</a></li>
+         <li><a href="registry.redhat.io--ubi8--dotnet-80-runtime-with-updates.html">registry.redhat.io/ubi8/dotnet-80-runtime</a></li>
+         <li><a href="registry.redhat.io--ubi8--dotnet-60-runtime-with-updates.html">registry.redhat.io/ubi8/dotnet-60-runtime</a></li>
          <li><a href="registry.redhat.io--ocp-tools-4--jenkins-rhel8--v4.12.0-1716801209-with-updates">registry.redhat.io/ocp-tools-4/jenkins-rhel8:v4.12.0-1716801209</a></li>
          <li><a href="registry.redhat.io--ansible-automation-platform-24--ee-supported-rhel8-with-updates">registry.redhat.io/ansible-automation-platform-24/ee-supported-rhel8</a></li>
          </ul>
