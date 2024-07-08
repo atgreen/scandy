@@ -75,6 +75,8 @@ for IMAGE in     registry.redhat.io/ansible-automation-platform-24/ee-supported-
                  registry.access.redhat.com/ubi8 \
                  registry.access.redhat.com/ubi9-minimal \
                  registry.access.redhat.com/ubi8-minimal \
+                 registry.access.redhat.com/ubi9-micro \
+                 registry.access.redhat.com/ubi8-micro \
                  registry.access.redhat.com/ubi8/python-39 \
                  registry.access.redhat.com/ubi8/python-311 \
                  registry.access.redhat.com/ubi8/python-312 \
@@ -91,7 +93,7 @@ for IMAGE in     registry.redhat.io/ansible-automation-platform-24/ee-supported-
     cat > Containerfile <<EOF
 FROM ${IMAGE}
 USER 0
-RUN yum -y update || microdnf -y update
+RUN yum -y update || microdnf -y update || true
 EOF
     cat Containerfile
     retry_command podman build -t ${IMAGE}-with-updates .

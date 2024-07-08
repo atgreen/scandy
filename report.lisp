@@ -753,6 +753,8 @@
          <li><a href="registry.access.redhat.com--ubi9-with-updates.html">registry.access.redhat.com/ubi9</a></li>
          <li><a href="registry.access.redhat.com--ubi9-minimal-with-updates.html">registry.access.redhat.com/ubi9-minimal </a></li>
          <li><a href="registry.access.redhat.com--ubi8-minimal-with-updates.html">registry.access.redhat.com/ubi8-minimal </a></li>
+         <li><a href="registry.access.redhat.com--ubi9-micro-with-updates.html">registry.access.redhat.com/ubi9-micro </a></li>
+         <li><a href="registry.access.redhat.com--ubi8-micro-with-updates.html">registry.access.redhat.com/ubi8-micro </a></li>
          <li><a href="registry.access.redhat.com--ubi8--openjdk-8-with-updates">registry.access.redhat.com/ubi8/openjdk-8</a></li>
          <li><a href="registry.access.redhat.com--ubi8--openjdk-21-with-updates">registry.access.redhat.com/ubi8/openjdk-21</a></li>
          <li><a href="registry.access.redhat.com--ubi9--openjdk-21-with-updates">registry.access.redhat.com/ubi9/openjdk-21</a></li>
