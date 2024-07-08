@@ -3,7 +3,7 @@
 set -e
 set -x
 
-WORKDIR=`mktemp -d`
+WORKDIR=$(mktemp -d)
 
 function cleanup {
     rm -rf ${WORKDIR}
@@ -56,15 +56,6 @@ fi
 # Clone the github advisory database
 git clone --depth=1  https://github.com/github/advisory-database.git
 
-# Drop the rhcve cache table. It will get rebuilt.
-#aws s3 cp s3://scandy-db/scandy.db .
-#sqlite3 scandy.db "DROP TABLE rhcve;" || true
-#sqlite3 scandy.db "VACUUM;"
-#aws s3 cp scandy.db s3://scandy-db/scandy.db
-
-# Debugging DB connection
-sbcl --non-interactive --eval "(asdf:load-system :report)" --eval "(report::get-db-connection)" 1 2 3 4 ${GITHUB_WORKSPACE}/scandy.db || true
-
 for IMAGE in     registry.redhat.io/ansible-automation-platform-24/ee-supported-rhel8 \
                  registry.redhat.io/ubi8/dotnet-80 \
                  registry.redhat.io/ubi8/dotnet-60 \
@@ -111,7 +102,7 @@ EOF
     IMG=$(echo ${IMG} | sed 's/:/\-\-/g')
     VERSION=$(date +%Y%m%d)
 
-    sbcl --non-interactive --eval "(asdf:load-system :report)" --eval "(report:main)" $(pwd)/_site/${IMG}.html ${SCANDIR}/grype/* ${SCANDIR}/trivy/* ${IMAGE} ${GITHUB_WORKSPACE}/scandy.db || true
+    sbcl --non-interactive --eval "(asdf:load-system :report)" --eval "(report:main)" $(pwd)/_site/${IMG}.html ${SCANDIR}/grype/* ${SCANDIR}/trivy/* ${IMAGE} || true
     sbcl --eval "(asdf:load-system :report)" --eval "(report::make-index.html)"
 
     (cd ${WORKDIR};

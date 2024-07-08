@@ -29,51 +29,30 @@
 
 (in-package :report)
 
-(defvar *image-name*)
-(defvar *scandy-db-filename* )
-(defvar *vuln-db* nil)
+(defparameter +scandy-db-filename+ "scandy.db")
 (defvar *db* nil)
 
 (markup:enable-reader)
 
 (defun get-db-connection ()
-  (let ((db-name (fifth (uiop:command-line-arguments))))
-    (setf *scandy-db-filename* db-name)
-    (log:info "DB file exists?" (uiop:file-exists-p db-name))
-    (setf *vuln-db* (handler-case
-                        (dbi:connect :sqlite3 :database-name "vuln.db")
-                      (error (e)
-                        (trivial-backtrace:print-condition e t))))
-    (setf *db* (handler-case
-                   (dbi:connect :sqlite3 :database-name db-name)
-                 (error (e)
-                   (trivial-backtrace:print-condition e t))))
-    (log:info "Connected to database" *db*)
-    (terpri)
+  (setf *db* (handler-case
+                 (dbi:connect :sqlite3 :database-name +scandy-db-filename+)
+               (error (e)
+                      (trivial-backtrace:print-condition e t))))
+  (log:info "Connected to database" *db*)
 
-    (handler-case
-        (progn
-          ;; Create RH CVE table
-          (dbi:do-sql *db* "
-CREATE TABLE IF NOT EXISTS rhcve (
-    cve TEXT PRIMARY KEY,
-    content TEXT
-)")
-          ;; Create per-run vulnerability db
-          (dbi:do-sql *vuln-db* "
-CREATE TABLE IF NOT EXISTS vulns (
-    id TEXT,
-    age INTEGER,
-    components TEXT,
-    severity TEXT,
-    image TEXT
-)"))
-      (error (e)
-        (trivial-backtrace:print-condition e t)))
+  (handler-case
+      (progn
+        ;; Create RH CVE table
+        (dbi:do-sql *db* "CREATE TABLE IF NOT EXISTS rhcve (cve TEXT PRIMARY KEY, content TEXT)")
+        ;; Create per-run vulnerability db
+        (dbi:do-sql *db* "CREATE TABLE IF NOT EXISTS vulns (id TEXT, age INTEGER, components TEXT, severity TEXT, image TEXT)"))
+    (error (e)
+           (trivial-backtrace:print-condition e t)))
 
-    (log:info "Validated databases")
+  (log:info "Validated databases")
 
-    *db*))
+  *db*)
 
 (defclass vulnerabilty ()
   ((id :accessor id)
@@ -124,11 +103,8 @@ CREATE TABLE IF NOT EXISTS vulns (
             (let ((pt (cdr (assoc :PUBLISHED ghjson))))
               (when pt
                 (setf published-date (local-time:parse-timestring pt))))
-            (print ghjson)
-            (print (cdr (assoc :REFERENCES ghjson)))
             (let ((reference-list (cdr (assoc :REFERENCES ghjson))))
               (dolist (reference reference-list)
-                (format t "RR: ~A~%" reference)
                 (let ((url (cdr (assoc :URL reference))))
                   (when url
                     (progn
@@ -154,6 +130,7 @@ CREATE TABLE IF NOT EXISTS vulns (
              (write-char char out)))))
 
 (defmethod initialize-instance ((vuln grype-vulnerability) &key json)
+  "Initialize a grype-vulnerability from decoded json data."
   (call-next-method)
   (with-slots (id severity component location description references) vuln
     (setf id (cdr (assoc :ID (cdr (assoc :VULNERABILITY json)))))
@@ -172,6 +149,7 @@ CREATE TABLE IF NOT EXISTS vulns (
     (setf references (append references (cdr (assoc :URLS (cdr (assoc :VULNERABILITY json))))))))
 
 (defmethod initialize-instance ((vuln trivy-vulnerability) &key json)
+  "Initialize a trivy-vulnerability from decoded json data."
   (call-next-method)
   (with-slots (id severity location published-date component title description references status) vuln
     (setf id (cdr (assoc :*VULNERABILITY-+ID+ json)))
@@ -190,6 +168,7 @@ CREATE TABLE IF NOT EXISTS vulns (
     (setf references (append references (cdr (assoc :*REFERENCES json))))))
 
 (defmethod initialize-instance ((vuln redhat-vulnerability) &key json)
+  "Initialize a redhat-vulnerability from decoded json data."
   (call-next-method)
   (with-slots (id severity published-date component description) vuln
     (setf id (cdr (assoc :NAME json)))
@@ -202,17 +181,13 @@ CREATE TABLE IF NOT EXISTS vulns (
     (setf published-date (local-time:parse-timestring (cdr (assoc :PUBLIC--DATE json))))
     (setf title (cdr (assoc :DESCRIPTION (cdr (assoc :BUGZILLA json)))))))
 
-(defun grype-severity (vulns)
-  (let ((v (find-if (lambda (v) (eq (type-of v) 'grype-vulnerability)) vulns)))
-    (when v (severity v))))
+(defmacro vuln-severity (vulns type)
+  `(let ((v (find-if (lambda (v) (eq (type-of v) ,type)) ,vulns)))
+     (when v (severity v))))
 
-(defun trivy-severity (vulns)
-  (let ((v (find-if (lambda (v) (eq (type-of v) 'trivy-vulnerability)) vulns)))
-    (when v (severity v))))
-
-(defun redhat-severity (vulns)
-  (let ((v (find-if (lambda (v) (eq (type-of v) 'redhat-vulnerability)) vulns)))
-    (when v (severity v))))
+(defun grype-severity (vulns) (vuln-severity vulns 'grype-vulnerability))
+(defun trivy-severity (vulns) (vuln-severity vulns 'trivy-vulnerability))
+(defun redhat-severity (vulns) (vuln-severity vulns 'redhat-vulnerability))
 
 (defun get-description (vulns)
   (let ((v (find-if (lambda (v) (eq (type-of v) 'redhat-vulnerability)) vulns)))
@@ -351,8 +326,8 @@ CREATE TABLE IF NOT EXISTS vulns (
 </head>
 <body>
     <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
-        <img src="https://raw.githubusercontent.com/atgreen/scandy/main/images/scandy-32x32.png" alt="" width="30" height="30">
         <div class="container-fluid">
+            <img src="https://raw.githubusercontent.com/atgreen/scandy/main/images/scandy-32x32.png" alt="" width="30" height="30">
             <a class="navbar-brand" href="https://atgreen.github.io/scandy/">scandy</a>
         </div>
     </nav>
@@ -366,7 +341,7 @@ CREATE TABLE IF NOT EXISTS vulns (
     <footer class="footer">
         <div class="container">
              <div class="text-center py-3">&copy; 2024 <a href="https://linkedin.com/in/green">Anthony Green</a></div>
-  <p>Scandy is an experiment, the source code for which is available at <a href="https://github.com/atgreen/scandy">https://github.com/atgreen/scandy</a> and is distributed under the terms of the MIT license.  See Scandy source files for details.</p>
+  <p>Scandy is an experiment, the source code for which is available under the terms of the MIT license at <a href="https://github.com/atgreen/scandy">https://github.com/atgreen/scandy</a>.</p>
         </div>
     </footer>
     <modals-template>
@@ -492,6 +467,7 @@ CREATE TABLE IF NOT EXISTS vulns (
          (string< id1 id2))))))
 
 (defun reference< (r1 r2)
+  "Order two references in our preferred order."
   (cond
     ((or (search "access.redhat.com/security/cve" r1)
          (search "access.redhat.com/security/cve" r2))
@@ -505,6 +481,9 @@ CREATE TABLE IF NOT EXISTS vulns (
     ((or (search "cve.org" r1)
          (search "cve.org" r2))
      (search "cve.org" r1))
+    ((or (search "bugzilla.redhat" r1)
+         (search "bugzilla.redhat" r2))
+     (search "bugzilla.redhat" r1))
     ((or (search "bugzilla" r1)
          (search "bugzilla" r2))
      (search "bugzilla" r1))
@@ -534,21 +513,6 @@ CREATE TABLE IF NOT EXISTS vulns (
                             collect (component v))))
     (sort (remove-duplicates components :test #'string-equal) 'string<)))
 
-(defun describe-container (image)
-  (cond
-    ((search "ubi8" image)
-     "RHEL 8")
-    ((search "rhel8" image)
-     "RHEL 8")
-    ((search "ubi9" image)
-     "RHEL 9")
-    ((search "rhel9" image)
-     "RHEL 9")
-    (t
-     image)))
-
-(defvar *count* 200)
-
 (defun get-redhat-security-data (cve-id)
   (let ((content (cadr (assoc :|content| (dbi:fetch-all (dbi:execute (dbi:prepare *db* "SELECT content from rhcve WHERE cve = ?")
                                                                      (list cve-id)))))))
@@ -565,12 +529,6 @@ CREATE TABLE IF NOT EXISTS vulns (
             rhj)
         (dex:http-request-not-found ()
             (format nil "Red Hat is not tracking ~A" cve-id))))))
-
-(defun string-digest (string)
-  (ironclad:byte-array-to-hex-string
-   (ironclad:digest-sequence :md5
-                             (babel:string-to-octets string
-                                                     :encoding :utf-8))))
 
 (defun opinion-style (opinion)
   (if opinion
@@ -609,7 +567,6 @@ CREATE TABLE IF NOT EXISTS vulns (
          (trivy-json
            (json:decode-json-from-string (uiop:read-file-string trivy-filename))))
 
-
     (setf *ghsa-files* (make-hash-table :test #'equal))
 
     (log:info "Scanning github security advisory database")
@@ -617,17 +574,18 @@ CREATE TABLE IF NOT EXISTS vulns (
                            (lambda (f)
                              (setf (gethash (pathname-name f) *ghsa-files*) f)))
 
-    (setf *image-name* image-name)
-
+    (log:info "Establishing database connection")
     (get-db-connection)
 
     (log:info "STARTING ANALYSIS")
 
+    ;; Go through grype results
     (let ((vulns (cdr (assoc :MATCHES grype-json))))
       (dolist (vuln-json vulns)
         (let ((vuln (make-instance 'grype-vulnerability :json vuln-json)))
           (push vuln (gethash (id vuln) vuln-table)))))
 
+    ;; Go through trivy results
     (dolist (vgroup (cdr (assoc :*RESULTS trivy-json)))
       (let ((vulns (cdr (assoc :*VULNERABILITIES vgroup))))
         (dolist (vuln-json vulns)
@@ -637,9 +595,7 @@ CREATE TABLE IF NOT EXISTS vulns (
     ;; Create a Red Hat vulnerability record
     (maphash (lambda (id vulns)
                (handler-case
-                   (let* ((rhj (get-redhat-security-data id))
-                          (rhl (json:decode-json-from-string rhj)))
-                     (push (make-instance 'redhat-vulnerability :json rhl) (gethash id vuln-table)))
+                   (push (make-instance 'redhat-vulnerability :json (json:decode-json-from-string (get-redhat-security-data id))) (gethash id vuln-table))
                  (error (e)
                    (trivial-backtrace:print-backtrace e :output *standard-output* :verbose t)
                    nil)))
@@ -700,7 +656,7 @@ CREATE TABLE IF NOT EXISTS vulns (
                                                      (local-time:timestamp-to-universal
                                                       (published-date pdv)))
                                                   (* 60.0 60.0 24.0)))))
-                                     (dbi:do-sql *vuln-db*
+                                     (dbi:do-sql *db*
                                        "INSERT INTO vulns (id, age, components, severity, image) VALUES (?, ?, ?, ?, ?)"
                                        (list (id (car vulns)) age (format nil "~{ ~A~}" (collect-components vulns)) (redhat-severity vulns) image-name))
                                      age)
@@ -722,20 +678,18 @@ CREATE TABLE IF NOT EXISTS vulns (
          stream))))
 
   (dbi:disconnect *db*)
-  (dbi:disconnect *vuln-db*)
 
   (sb-ext:quit))
 
 (defun make-index.html ()
   (let ((rows
-          (let* ((connection (dbi:connect :sqlite3 :database-name "vuln.db"))
+          (let* ((connection (dbi:connect :sqlite3 :database-name +scandy-db-filename+))
                  (query (dbi:execute (dbi:prepare connection "SELECT id, age, components, severity, image FROM vulns WHERE age <= 7 ORDER BY age ASC"))))
             (unwind-protect
                  (loop for row = (dbi:fetch query)
                        while row
                        collect row)
               (dbi:disconnect connection)))))
-    (print rows)
     (let ((vulns (make-hash-table :test 'equal)))
       (dolist (row rows)
         (let* ((id (nth 1 row))
