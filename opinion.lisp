@@ -28,6 +28,10 @@
 (defun get-opinion (cve components locations image)
   (cond
 
+    ((string= "CVE-2021-32256")
+     '("Ignorable"
+       "This is a junk CVE.  The upstream binutils project rejects this bug as a security issue, in accordance with <a href=\"https://sourceware.org/git/?p=binutils-gdb.git;a=blob_plain;f=binutils/SECURITY.txt;h=f16b0c9d7099150e0f116e9e681c424eea3915fe;hb=HEAD\">their security policy</a>."))
+
     ((and (string= cve "CVE-2022-40897") (equal locations '("/opt/app-root/lib/python3.9/site-packages/setuptools-53.0.0.dist-info/METADATA" "setuptools-53.0.0")))
      '("False Positive"
        "This is a false positive.  This container image contains a fixed version of python-setuptools (see <a href=\"https://access.redhat.com/errata/RHSA-2023:0952\">https://access.redhat.com/errata/RHSA-2023:0952</a>).  However, the scanner is detecting a copy of setuptools that was created for an application's virtual environment, and does not recognize that it was copied from a fixed version of python-setuptools."))
