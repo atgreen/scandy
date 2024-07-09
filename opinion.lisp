@@ -34,7 +34,16 @@
 
     ((and (string= cve "CVE-2022-40897") (equal locations '("/opt/app-root/lib/python3.9/site-packages/setuptools-53.0.0.dist-info/METADATA" "setuptools-53.0.0")))
      '("False Positive"
-       "This is a false positive.  This container image contains a fixed version of python-setuptools (see <a href=\"https://access.redhat.com/errata/RHSA-2023:0952\">https://access.redhat.com/errata/RHSA-2023:0952</a>).  However, the scanner is detecting a copy of setuptools that was created for an application's virtual environment, and does not recognize that it was copied from a fixed version of python-setuptools."))
+       "This is a false positive.  This container image contains a fixed
+version of python-setuptools (see <a
+href=\"https://access.redhat.com/errata/RHSA-2023:0952\">https://access.redhat.com/errata/RHSA-2023:0952</a>).
+The scanner is not identifying the problem in this fixed copy of
+python-setuptools because it can associate those files with the RPM
+package that it knows contains the fix.  However, this container image
+also contains a python virtual environment in
+<code>/opt/app-root</code> that contains copies of those original
+fixed source files.  The scanner is unable to correctly detect that
+these copies came from Red Hat's fixed python-setuptools."))
 
     ((and (string= cve "CVE-2022-3509") (find "/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/org/infinispan/protostream/protostream/4.3.6.Final-redhat-00001/protostream-4.3.6.Final-redhat-00001.jar" locations :test 'equal))
      '("False Positive"
@@ -77,17 +86,25 @@ RUN rpm -e httpd httpd-core httpd-devel httpd-filesystem httpd-tools mod_ldap mo
                   "CVE-2024-23653" "CVE-2024-23650") :test 'equal)
           (equal locations '("/usr/bin/oc" "github.com/moby/buildkit-v0.0.0-20181107081847-c3a857e3fca0")))
      '("False Positive"
-       "The scanner is detecting the use of a vulnerable moby project version in <code>/usr/bin/oc</code>.  However, <code>oc</code> only uses the Dockerfile parsing code from moby's buildkit, and not include the vulnerable buildkit, therefore <code>oc</code> is not affected by this vulnerability.  Consider an exception policy for this CVE as it relates to the <code>oc</code> command."))
+       "The scanner is detecting the use of a vulnerable moby project version
+in <code>/usr/bin/oc</code>.  However, <code>oc</code> only uses the
+Dockerfile parsing code from moby's buildkit, and not include the
+vulnerable buildkit, therefore <code>oc</code> is not affected by this
+vulnerability.  Consider an exception policy for this CVE as it
+relates to the <code>oc</code> command."))
 
     ((equal components '("emacs-filesystem"))
      '("Ignorable"
-       "This vulnerability exists in <code>emacs</code>, but Red Hat's policy is to taint
-every subpackage built from the vulnerable source package with the
-same vulnerability.  In this case, however,
+       "This vulnerability was identified in the <code>emacs</code> project
+source code.  Red Hat builds multiple packages from the
+<code>emacs</code> project source code, some of which do not contain
+the specific code that triggered this CVE.  However, Red Hat's policy
+is to taint every subpackage built from the vulnerable source package
+with the same vulnerability.  In this specific case,
 <code>emacs-filesystem</code> only contains empty directories, and no
-software.  It is installed as a dependency for packages that install
-emacs lisp extensions, even when emacs itself is not installed.
-Consider a global exception for this vulnerability when
+software at all.  It is only installed as a dependency for other
+packages that install
+emacs lisp extensions, even when emacs itself is not installed.  Consider a global exception for this vulnerability when
 <code>emacs</code> is not installed in your container image."))
 
     ((equal components '("kernel-headers"))
@@ -105,13 +122,20 @@ global exception for this vulnerability."))
 <pre>
 RUN rpm -e --nodeps less
 </pre>
-When present, <code>git</code> will use <code>less</code> to page the output of logs to a terminal for interactive use; something that is not typically required in containerized applications.  <code>git</code> will just cat log output instead of paging it once <code>less</code> is removed."))
+When <code>less</code> is present, <code>git</code> will use <code>less</code> to page the
+output of logs to a terminal for interactive use; something that is
+not typically required in containerized applications.
+When <code>less</code> is not present, <code>git</code> will just cat log output instead of paging it."))
+<code>less</code> is removed."))
 
     ((equal components '("openssh" "openssh-clients"))
      '("Removable"
        "The <code>openssh</code> and <code>openssh-clients</code> are often only dragged
-into container images as dependencies of <code>git-core</code>.  You can safely remove
-these packages from your container image if this is the case and you are not using ssh-based authentication with <code>git</code> (for instance, you may be using token-based authentication).  Remove these packages like so:
+into container images as dependencies of <code>git-core</code>.  You
+can safely remove these packages from your container image if this is
+the case and you are not using ssh-based authentication with
+<code>git</code> (for instance, you may be using token-based
+authentication).  Remove these packages like so:
 <pre>
 RUN rpm -e --nodeps openssh openssh-clients
 </pre>"))
