@@ -137,7 +137,6 @@ When <code>less</code> is present, <code>git</code> will use <code>less</code> t
 output of logs to a terminal for interactive use; something that is
 not typically required in containerized applications.
 When <code>less</code> is not present, <code>git</code> will just cat log output instead of paging it."))
-<code>less</code> is removed."))
 
     ((equal components '("openssh" "openssh-clients"))
      '("Removable"
