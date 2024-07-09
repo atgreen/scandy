@@ -32,6 +32,8 @@
 (defparameter +scandy-db-filename+ "scandy.db")
 (defvar *db* nil)
 
+(defvar *image-name* nil)
+
 (markup:enable-reader)
 
 (defun get-db-connection ()
@@ -209,7 +211,7 @@
              <div class="modal-dialog modal-lg">
              <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id=(format nil "~A-modalLabel" (id (car vulns))) >Security Advisory: ,(progn (id (car vulns))) </h5>
+                    <h5 class="modal-title" id=(format nil "~A-modalLabel" (id (car vulns))) > ,(progn *image-name*) </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -566,6 +568,8 @@
            (json:decode-json-from-string (uiop:read-file-string grype-filename)))
          (trivy-json
            (json:decode-json-from-string (uiop:read-file-string trivy-filename))))
+
+    (setf *image-name* image-name)
 
     (setf *ghsa-files* (make-hash-table :test #'equal))
 
