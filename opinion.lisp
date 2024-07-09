@@ -28,6 +28,17 @@
 (defun get-opinion (cve components locations)
   (cond
 
+    ((and (string= cve "2018-8088")
+          (equal locations '("/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/org/slf4j/slf4j-ext/1.7.22.redhat-2/slf4j-ext-1.7.22.redhat-2.jar" "org.slf4j:slf4j-ext-1.7.22.redhat-2")))
+     '("False Positive"
+       "This is a false positive. This slf4j CVE was fixed in <a href=\"https://access.redhat.com/errata/RHSA-2018:0629\">RHSA-2018:0629</a> and <a href=\"https://access.redhat.com/errata/RHSA-2018:1251\">RHSA-2018:1251</a>."))
+
+    ((and (or (string= cve "CVE-2022-23221")
+              (string= cve "CVE-2021-32492"))
+          (equal locations '("/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/com/h2database/h2/1.4.197.redhat-00004/h2-1.4.197.redhat-00004.jar" "com.h2database:h2-1.4.197.redhat-00004")))
+     '("False Positive"
+       "This is a false positive.  This h2 CVE was fixed in <a href=\"https://access.redhat.com/errata/RHSA-2022:4919\">RHSA-2022:4919</a>."))
+
     ((string= cve "CVE-2021-32256")
      '("Ignorable"
        "This is a junk CVE.  The upstream binutils project rejects this bug as a security issue, in accordance with <a href=\"https://sourceware.org/git/?p=binutils-gdb.git;a=blob_plain;f=binutils/SECURITY.txt;h=f16b0c9d7099150e0f116e9e681c424eea3915fe;hb=HEAD\">their security policy</a>."))
