@@ -28,7 +28,7 @@
 (defun get-opinion (cve components locations image)
   (cond
 
-    ((string= "CVE-2021-32256")
+    ((string= cve "CVE-2021-32256")
      '("Ignorable"
        "This is a junk CVE.  The upstream binutils project rejects this bug as a security issue, in accordance with <a href=\"https://sourceware.org/git/?p=binutils-gdb.git;a=blob_plain;f=binutils/SECURITY.txt;h=f16b0c9d7099150e0f116e9e681c424eea3915fe;hb=HEAD\">their security policy</a>."))
 
