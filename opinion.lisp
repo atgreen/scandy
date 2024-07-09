@@ -25,8 +25,12 @@
 
 (in-package :report)
 
-(defun get-opinion (cve components locations)
+(defun get-opinion (cve components locations image)
   (cond
+
+    ((and (string= cve "CVE-2022-40897") (equal locations '("/opt/app-root/lib/python3.9/site-packages/setuptools-53.0.0.dist-info/METADATA" "setuptools-53.0.0")))
+     '("False Positive"
+       "This is a false positive.  This container image contains a fixed version of python-setuptools (see <a href=\"https://access.redhat.com/errata/RHSA-2023:0952\">https://access.redhat.com/errata/RHSA-2023:0952</a>).  However, the scanner is detecting a copy of setuptools that was created for an application's virtual environment, and does not recognize that it was copied from a fixed version of python-setuptools."))
 
     ((and (string= cve "CVE-2022-3509") (find "/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/org/infinispan/protostream/protostream/4.3.6.Final-redhat-00001/protostream-4.3.6.Final-redhat-00001.jar" locations :test 'equal))
      '("False Positive"
