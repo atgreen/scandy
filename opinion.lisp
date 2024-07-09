@@ -25,7 +25,7 @@
 
 (in-package :report)
 
-(defun get-opinion (cve components locations image)
+(defun get-opinion (cve components locations)
   (cond
 
     ((string= cve "CVE-2021-32256")
