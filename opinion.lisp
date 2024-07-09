@@ -28,7 +28,11 @@
 (defun get-opinion (cve components locations)
   (cond
 
-    ((and (string= cve "2018-8088")
+    ((string= cve "CVE-2005-2541")
+     '("Ignorable"
+       "The <code>tar</code> program is behaving as documented. There are no plans to change this."))
+
+    ((and (string= cve "CVE-2018-8088")
           (equal locations '("/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/org/slf4j/slf4j-ext/1.7.22.redhat-2/slf4j-ext-1.7.22.redhat-2.jar" "org.slf4j:slf4j-ext-1.7.22.redhat-2")))
      '("False Positive"
        "This is a false positive. This slf4j CVE was fixed in <a href=\"https://access.redhat.com/errata/RHSA-2018:0629\">RHSA-2018:0629</a> and <a href=\"https://access.redhat.com/errata/RHSA-2018:1251\">RHSA-2018:1251</a>."))
