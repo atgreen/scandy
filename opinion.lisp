@@ -40,6 +40,11 @@
      '("Ignorable"
        "The <code>tar</code> program is behaving as documented. There are no plans to change this."))
 
+    ((and (string= cve "CVE-2016-1000027")
+          (equal locations '("/usr/lib/jenkins/jenkins.war" "org.springframework:spring-web-5.3.33")))
+     '("Ignorable"
+       "This CVE relates to using the spring framework for deserializing untrusted data.  However, Jenkins does not use the spring framework for deserialization.  It implements its own serialization framework, and the upstream Jenkins project explicitly ignores this CVE in their own CI infrastructure.  See <a href=\"https://github.com/jenkinsci/devops-portal-plugin/blame/af57f86bb4d12d3a0907aa40cf8040f24366eca3/suppress-dependency-issues.xml#L15\">https://github.com/jenkinsci/devops-portal-plugin/blame/af57f86bb4d12d3a0907aa40cf8040f24366eca3/suppress-dependency-issues.xml#L15</a>"))
+
     ((and (string= cve "CVE-2018-8088")
           (equal locations '("/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/org/slf4j/slf4j-ext/1.7.22.redhat-2/slf4j-ext-1.7.22.redhat-2.jar" "org.slf4j:slf4j-ext-1.7.22.redhat-2")))
      '("False Positive"
