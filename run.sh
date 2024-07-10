@@ -100,8 +100,12 @@ EOF
     trivy_scan ${SCANDIR} ${IMAGE}-with-updates
     grype_scan ${SCANDIR} ${IMAGE}-with-updates
 
-    podman rmi ${IMAGE}-with-updates:latest
-    podman rmi ${IMAGE} || podman rmi ${IMAGE}:latest
+    if [[ "$IMAGE" != *":"* ]]; then
+        podman rmi ${IMAGE}-with-updates:latest
+        podman rmi ${IMAGE}:latest
+    else
+        podman rmi ${IMAGE}
+    fi
 
     IMG=$(echo ${IMAGE}-with-updates | sed 's/\//\-\-/g')
     IMG=$(echo ${IMG} | sed 's/:/\-\-/g')
