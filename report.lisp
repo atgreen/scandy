@@ -228,7 +228,7 @@
                             </ul>
                             </markup:merge-tag>
                             )))
-                ,(progn (let ((opinion (get-opinion (id (car vulns)) (collect-components vulns) (collect-locations vulns))))
+                ,(progn (let ((opinion (get-opinion (id (car vulns)) (collect-components vulns) (collect-locations vulns) *image-name*)))
                           (when opinion
                             <markup:merge-tag>
                             <h3>Scandy Opinion: </h3>
