@@ -25,8 +25,16 @@
 
 (in-package :report)
 
-(defun get-opinion (cve components locations)
+(defun get-opinion (cve components locations image)
   (cond
+
+    ((and (string= image "registry.redhat.io/jboss-eap-7/eap74-openjdk11-openshift-rhel8")
+          (or (string= cve "CVE-2022-42004")
+              (string= cve "CVE-2022-42003"))
+          (equal locations '("/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/com/fasterxml/jackson/core/jackson-databind/2.12.7.redhat-00003/jackson-databind-2.12.7.redhat-00003.jar"
+                             "com.fasterxml.jackson.core:jackson-databind-2.12.7.redhat-00003")))
+     '("False Positive"
+       "This is a false positive. This jackson-databind CVE was fixed in <a href=\"https://access.redhat.com/errata/RHSA-2023:0553\">RHSA-2023:0553</a>."))
 
     ((string= cve "CVE-2005-2541")
      '("Ignorable"
@@ -38,7 +46,7 @@
        "This is a false positive. This slf4j CVE was fixed in <a href=\"https://access.redhat.com/errata/RHSA-2018:0629\">RHSA-2018:0629</a> and <a href=\"https://access.redhat.com/errata/RHSA-2018:1251\">RHSA-2018:1251</a>."))
 
     ((and (or (string= cve "CVE-2022-23221")
-              (string= cve "CVE-2021-32492"))
+              (string= cve "CVE-2021-42392"))
           (equal locations '("/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/com/h2database/h2/1.4.197.redhat-00004/h2-1.4.197.redhat-00004.jar" "com.h2database:h2-1.4.197.redhat-00004")))
      '("False Positive"
        "This is a false positive.  This h2 CVE was fixed in <a href=\"https://access.redhat.com/errata/RHSA-2022:4919\">RHSA-2022:4919</a>."))
@@ -104,7 +112,7 @@ RUN rpm -e httpd httpd-core httpd-devel httpd-filesystem httpd-tools mod_ldap mo
        "The scanner is detecting the use of a vulnerable moby project version
 in <code>/usr/bin/oc</code>.  However, <code>oc</code> only uses the
 Dockerfile parsing code from moby's buildkit, and not include the
-vulnerable buildkit, therefore <code>oc</code> is not affected by this
+vulnerable buildkit code, therefore <code>oc</code> is not affected by this
 vulnerability.  Consider an exception policy for this CVE as it
 relates to the <code>oc</code> command."))
 

@@ -649,7 +649,7 @@
          </thead>
          <tbody>
          ,@(mapcar (lambda (vulns)
-                     (let ((opinion (get-opinion (id (car vulns)) (collect-components vulns) (collect-locations vulns))))
+                     (let ((opinion (get-opinion (id (car vulns)) (collect-components vulns) (collect-locations vulns) *image-name*)))
                        <markup:merge-tag>
                        <tr class=(severity-class (redhat-severity vulns)) data-bs-toggle="modal" data-bs-target=(format nil "#~A-modal" (id (car vulns))) >
                        <td class="no-wrap"> ,(id (car vulns)) </td>
