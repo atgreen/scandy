@@ -329,7 +329,7 @@
 <body>
     <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
         <div class="container-fluid">
-            <img src="https://raw.githubusercontent.com/atgreen/scandy/main/images/scandy-32x32.png" alt="" width="30" height="30">
+            <a class="navbar-brand" href="https://atgreen.github.io/scandy/"><img src="https://raw.githubusercontent.com/atgreen/scandy/main/images/scandy-32x32.png" alt="" width="30" height="30"></a>
             <a class="navbar-brand" href="https://atgreen.github.io/scandy/">scandy</a>
         </div>
     </nav>
