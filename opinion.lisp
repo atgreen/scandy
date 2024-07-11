@@ -28,6 +28,15 @@
 (defun get-opinion (cve components locations image)
   (cond
 
+    ((and (string= cve "CVE-2022-0235")
+          (equal locations '("dnf-plugin-subscription-manager-1.28.42-1.el8"
+                             "python3-cloud-what-1.28.42-1.el8"
+                             "python3-subscription-manager-rhsm-1.28.42-1.el8"
+                             "python3-syspurpose-1.28.42-1.el8"
+                             "subscription-manager-1.28.42-1.el8")))
+     '("False Positive"
+       "This is a false positive. These packages used to have a dependency on the vulnerable <code>node-fetch</code> code back in RHEL 8.2, but this is no longer the case."))
+
     ((and (string= image "registry.redhat.io/jboss-eap-7/eap74-openjdk11-openshift-rhel8")
           (or (string= cve "CVE-2022-42004")
               (string= cve "CVE-2022-42003"))
