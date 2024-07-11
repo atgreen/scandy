@@ -164,6 +164,27 @@ output of logs to a terminal for interactive use; something that is
 not typically required in containerized applications.
 When <code>less</code> is not present, <code>git</code> will just cat log output instead of paging it."))
 
+    ((and (string= cve "CVE-2024-6409")
+          (equal components '("openssh" "openssh-clients")))
+     '("Ignorable, Removable"
+       "This vulnerability was identified in the <code>openssh</code> project
+source code.  Red Hat builds multiple packages from the
+<code>openssh</code> project source code, some of which do not contain
+the specific code that triggered this CVE.  However, Red Hat's policy
+is to taint every subpackage built from the vulnerable source package
+with the same vulnerability.  In this specific case, the vulnerability lies in <code>sshd</code>, which is distributed in the <code>openssh-server</code>.  This package is not installed in this container image.  Consider a global exception for this vulnerability when <code>openssh-server</code> is not installed in your container image.
+<br>
+Alternatively, you may consider removing the <code>openssh</code> and
+<code>openssh-clients</code> from your container image.  These are
+often only dragged into images as dependencies of
+<code>git-core</code>.  You can safely remove these packages from your
+image if this is the case and you are not using ssh-based
+authentication with <code>git</code> (for instance, you may be using
+token-based authentication).  Remove these packages like so:
+<pre>
+RUN rpm -e --nodeps openssh openssh-clients
+</pre>"))
+
     ((equal components '("openssh" "openssh-clients"))
      '("Removable"
        "The <code>openssh</code> and <code>openssh-clients</code> are often only dragged
