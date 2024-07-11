@@ -164,15 +164,24 @@ output of logs to a terminal for interactive use; something that is
 not typically required in containerized applications.
 When <code>less</code> is not present, <code>git</code> will just cat log output instead of paging it."))
 
+    ((and (string= "CVE-2024-1233")
+          (equal components '("/opt/eap/bin/client/jboss-client.jar"
+                              "/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/org/jboss/eap/wildfly-client-all/7.4.17.GA-redhat-00002/wildfly-client-all-7.4.17.GA-redhat-00002.jar"
+                              "/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/org/wildfly/security/wildfly-elytron-realm-token/1.15.23.Final-redhat-00001/wildfly-elytron-realm-token-1.15.23.Final-redhat-00001.jar"
+                              "/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/org/wildfly/security/wildfly-elytron/1.15.23.Final-redhat-00001/wildfly-elytron-1.15.23.Final-redhat-00001.jar"
+                              "org.wildfly.security:wildfly-elytron-realm-token-1.15.23.Final-redhat-00001")))
+     '("False Positive"
+       "This is a false positive.  This issue was resolved in multiple components through <a href=\"https://access.redhat.com/errata/RHSA-2024:3559\">RHSA-2024:3559</a>, <a href=\"https://access.redhat.com/errata/RHSA-2024:3560\">RHSA-2024:3560</a>, and <a href=\"https://access.redhat.com/errata/RHSA-2024:3561\">RHSA-2024:3561</a>."))
+
     ((and (string= cve "CVE-2024-6409")
           (equal components '("openssh" "openssh-clients")))
-     '("Ignorable, Removable"
+     '("False Positive & Removable"
        "This vulnerability was identified in the <code>openssh</code> project
 source code.  Red Hat builds multiple packages from the
 <code>openssh</code> project source code, some of which do not contain
 the specific code that triggered this CVE.  However, Red Hat's policy
 is to taint every subpackage built from the vulnerable source package
-with the same vulnerability.  In this specific case, the vulnerability lies in <code>sshd</code>, which is distributed in the <code>openssh-server</code>.  This package is not installed in this container image.  Consider a global exception for this vulnerability when <code>openssh-server</code> is not installed in your container image.
+with the same vulnerability.  In this specific case, the vulnerability lies in <code>sshd</code>, which is distributed in the <code>openssh-server</code> RPM.  This package is not installed in this container image.  Consider a global exception for this vulnerability when <code>openssh-server</code> is not installed in your container image.
 <br>
 Alternatively, you may consider removing the <code>openssh</code> and
 <code>openssh-clients</code> from your container image.  These are
