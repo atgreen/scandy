@@ -28,6 +28,14 @@
 (defun get-opinion (cve components locations image)
   (cond
 
+    ((and (string= cve "CVE-2023-44487")
+          (equal locations '("nodejs-1:20.12.2-2.module+el9.4.0+21731+46b5b8a7"
+                             "nodejs-docs-1:20.12.2-2.module+el9.4.0+21731+46b5b8a7"
+                             "nodejs-full-i18n-1:20.12.2-2.module+el9.4.0+21731+46b5b8a7"
+                             "npm-1:10.5.0-1.20.12.2.2.module+el9.4.0+21731+46b5b8a7")))
+     '("False Positive"
+       "This is a false positive.  The first <code>nodejs 20</code> introduced in RHEL 9 was version 20.8.1.  This is the same version that has the fix for CVE-2023-44487.  See <a href=\"https://nodejs.org/en/blog/release/v20.8.1/\">https://nodejs.org/en/blog/release/v20.8.1/</a> and <a href=\"https://nodejs.org/en/blog/vulnerability/october-2023-security-releases\">https://nodejs.org/en/blog/vulnerability/october-2023-security-releases</a> for details."))
+
     ((and (string= cve "CVE-2022-0235")
           (equal locations '("dnf-plugin-subscription-manager-1.28.42-1.el8"
                              "python3-cloud-what-1.28.42-1.el8"
@@ -164,7 +172,7 @@ output of logs to a terminal for interactive use; something that is
 not typically required in containerized applications.
 When <code>less</code> is not present, <code>git</code> will just cat log output instead of paging it."))
 
-    ((and (string= "CVE-2024-1233")
+    ((and (string= cve "CVE-2024-1233")
           (equal components '("/opt/eap/bin/client/jboss-client.jar"
                               "/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/org/jboss/eap/wildfly-client-all/7.4.17.GA-redhat-00002/wildfly-client-all-7.4.17.GA-redhat-00002.jar"
                               "/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/org/wildfly/security/wildfly-elytron-realm-token/1.15.23.Final-redhat-00001/wildfly-elytron-realm-token-1.15.23.Final-redhat-00001.jar"
