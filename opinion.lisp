@@ -173,6 +173,7 @@ not typically required in containerized applications.
 When <code>less</code> is not present, <code>git</code> will just cat log output instead of paging it."))
 
     ((and (string= cve "CVE-2024-1233")
+          (or (format t "***** CVE-2024-1223: ~A" components) t)
           (equal components '("/opt/eap/bin/client/jboss-client.jar"
                               "/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/org/jboss/eap/wildfly-client-all/7.4.17.GA-redhat-00002/wildfly-client-all-7.4.17.GA-redhat-00002.jar"
                               "/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/org/wildfly/security/wildfly-elytron-realm-token/1.15.23.Final-redhat-00001/wildfly-elytron-realm-token-1.15.23.Final-redhat-00001.jar"
