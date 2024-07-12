@@ -439,6 +439,24 @@
                     return data[2] !== 'kernel-headers'; // 2 is the index of the Component column
                 }
             );
+
+          document.addEventListener('DOMContentLoaded', (event) => {
+            // Get the server timestamp from the data attribute
+            const serverTimestampElement = document.getElementById('server-timestamp');
+            const serverTimestamp = serverTimestampElement.getAttribute('data-timestamp');
+
+            // Convert server timestamp to local timezone
+            const localDate = new Date(serverTimestamp);
+            const options = {
+                year: 'numeric', month: 'long', day: 'numeric',
+                hour: '2-digit', minute: '2-digit', second: '2-digit',
+                timeZoneName: 'short'
+            };
+            const localTimestamp = localDate.toLocaleString(undefined, options);
+
+            // Display the local timestamp
+            serverTimestampElement.textContent = `${localTimestamp}`;
+        });
     </script>
 </body>
 </html> )
@@ -620,7 +638,7 @@
         (markup:write-html-to-stream
          <page-template title="scandy" index="false">
          <h1>,(progn image-name)</h1>
-         <h2>With updates as of ,(local-time:format-timestring nil (local-time:now) :format local-time:+rfc-1123-format+) </h2>
+         <h2>With RPM updates as of <span id="server-timestamp" data-timestamp=(local-time:format-timestring nil (local-time:now) :format local-time:+rfc-1123-format+) > </span></h2>
          <div class="dt-buttons btn-group">
          <button class="btn" style="background-color: #bbbbbb; border: 1px solid #000" onclick="filterSeverity('')">All</button>
          <button class="btn" style="background-color: #ffcccc; border: 1px solid #000" onclick="filterSeverity('Critical')">Critical</button>
