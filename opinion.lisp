@@ -29,6 +29,16 @@
   (cond
 
     ((and (string= cve "CVE-2023-44487")
+          (equal locations '("/opt/eap/bin/client/jboss-cli-client.jar"
+                             "/opt/eap/bin/client/jboss-client.jar"
+                             "/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/org/jboss/eap/wildfly-client-all/7.4.17.GA-redhat-00002/wildfly-client-all-7.4.17.GA-redhat-00002.jar"
+                             "/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/org/jboss/xnio/xnio-api/3.8.12.SP2-redhat-00001/xnio-api-3.8.12.SP2-redhat-00001.jar"
+                             "/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/org/wildfly/core/wildfly-cli/15.0.36.Final-redhat-00001/wildfly-cli-15.0.36.Final-redhat-00001-client.jar"
+                             "org.jboss.xnio:xnio-api-3.8.12.SP2-redhat-00001")))
+     '("False Positive"
+       "This is a false positive.  CVE-2023-44487 was fixed for <code>xnio</code> in the EAP 4.7.14 security advisory update <a href=\"https://access.redhat.com/errata/RHSA-2023:7641\">https://access.redhat.com/errata/RHSA-2023:7641</a>."))
+
+    ((and (string= cve "CVE-2023-44487")
           (equal locations '("/opt/eap/bin/client/jboss-client.jar"
                              "/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/io/netty/netty-codec-http2/4.1.94.Final-redhat-00003/netty-codec-http2-4.1.94.Final-redhat-00003.jar"
                              "/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/org/jboss/eap/wildfly-client-all/7.4.17.GA-redhat-00002/wildfly-client-all-7.4.17.GA-redhat-00002.jar"
