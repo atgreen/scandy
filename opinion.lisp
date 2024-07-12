@@ -28,6 +28,20 @@
 (defun get-opinion (cve components locations image)
   (cond
 
+    ((and (string= cve "CVE-2022-25647")
+          (equal locations '("/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/org/infinispan/protostream/protostream/4.3.6.Final-redhat-00001/protostream-4.3.6.Final-redhat-00001.jar"
+                             "com.google.code.gson:gson-2.8.5.redhat-00002")))
+     '("False Positive"
+       "This is a false positive.  This CVE was fixed in the EAP 4.7.6 security advisory update <a href=\"https://access.redhat.com/errata/RHSA-2022:5893\">https://access.redhat.com/errata/RHSA-2022:5893</a>."))
+
+    ((and (string= cve "CVE-2022-23913")
+          (equal locations '("/opt/eap/bin/client/jboss-client.jar"
+                             "/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/org/apache/activemq/artemis-core-client/2.16.0.redhat-00052/artemis-core-client-2.16.0.redhat-00052.jar"
+                             "/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/org/jboss/eap/wildfly-client-all/7.4.17.GA-redhat-00002/wildfly-client-all-7.4.17.GA-redhat-00002.jar"
+                             "org.apache.activemq:artemis-core-client-2.16.0.redhat-00052")))
+     '("False Positive"
+       "This is a false positive.  This CVE was fixed in the EAP 4.7.5 security advisory update <a href=\"https://access.redhat.com/errata/RHSA-2022:4919\">https://access.redhat.com/errata/RHSA-2022:4919</a>."))
+
     ((and (string= cve "CVE-2023-6236")
           (equal locations '("/opt/eap/bin/client/jboss-client.jar"
                              "/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/org/jboss/eap/wildfly-client-all/7.4.17.GA-redhat-00002/wildfly-client-all-7.4.17.GA-redhat-00002.jar"
