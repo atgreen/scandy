@@ -29,6 +29,14 @@
   (cond
 
     ((and (string= cve "CVE-2023-44487")
+          (equal locations '("/opt/eap/bin/client/jboss-client.jar"
+                             "/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/io/netty/netty-codec-http2/4.1.94.Final-redhat-00003/netty-codec-http2-4.1.94.Final-redhat-00003.jar"
+                             "/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/org/jboss/eap/wildfly-client-all/7.4.17.GA-redhat-00002/wildfly-client-all-7.4.17.GA-redhat-00002.jar"
+                             "io.netty:netty-codec-http2-4.1.94.Final-redhat-00003")))
+     '("False Positive"
+       "This is a false positive.  CVE-2023-44487 was fixed for <code>netty-codec-http2</code> in the EAP 4.7.14 security advisory update <a href=\"https://access.redhat.com/errata/RHSA-2023:7641\">https://access.redhat.com/errata/RHSA-2023:7641</a>."))
+
+    ((and (string= cve "CVE-2023-44487")
           (equal locations '("nodejs-1:20.12.2-2.module+el9.4.0+21731+46b5b8a7"
                              "nodejs-docs-1:20.12.2-2.module+el9.4.0+21731+46b5b8a7"
                              "nodejs-full-i18n-1:20.12.2-2.module+el9.4.0+21731+46b5b8a7"
@@ -184,7 +192,7 @@ When <code>less</code> is not present, <code>git</code> will just cat log output
 
     ((and (string= cve "CVE-2024-6409")
           (equal components '("openssh" "openssh-clients")))
-     '("False Positive & Removable"
+     '("Ignorable & Removable"
        "This vulnerability was identified in the <code>openssh</code> project
 source code.  Red Hat builds multiple packages from the
 <code>openssh</code> project source code, some of which do not contain
