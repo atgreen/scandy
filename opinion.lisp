@@ -28,7 +28,15 @@
 (defun get-opinion (cve components locations image)
   (cond
 
-    ((and (string= cve "CVE-2023-44487")
+    ((and (string= cve "CVE-2023-6236")
+          (equal locations '("/opt/eap/bin/client/jboss-client.jar"
+                             "/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/org/jboss/eap/wildfly-client-all/7.4.17.GA-redhat-00002/wildfly-client-all-7.4.17.GA-redhat-00002.jar"
+                             "/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/org/wildfly/security/wildfly-elytron/1.15.23.Final-redhat-00001/wildfly-elytron-1.15.23.Final-redhat-00001.jar"
+                             "org.wildfly.security:wildfly-elytron-http-oidc-1.15.23.Final-redhat-00001")))
+     '("False Positive"
+       "This is a false positive. EAP 7.4 does not provide the vulnerable provider-url configuration option in its OIDC implementation and is not affected by this flaw."))
+
+    ((and (or (string= cve "CVE=2023-5865") (string= cve "CVE-2023-44487"))
           (equal locations '("/opt/eap/bin/client/jboss-cli-client.jar"
                              "/opt/eap/bin/client/jboss-client.jar"
                              "/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/org/jboss/eap/wildfly-client-all/7.4.17.GA-redhat-00002/wildfly-client-all-7.4.17.GA-redhat-00002.jar"
@@ -36,7 +44,7 @@
                              "/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/org/wildfly/core/wildfly-cli/15.0.36.Final-redhat-00001/wildfly-cli-15.0.36.Final-redhat-00001-client.jar"
                              "org.jboss.xnio:xnio-api-3.8.12.SP2-redhat-00001")))
      '("False Positive"
-       "This is a false positive.  CVE-2023-44487 was fixed for <code>xnio</code> in the EAP 4.7.14 security advisory update <a href=\"https://access.redhat.com/errata/RHSA-2023:7641\">https://access.redhat.com/errata/RHSA-2023:7641</a>."))
+       "This is a false positive.  This CVE was fixed in the EAP 4.7.14 security advisory update <a href=\"https://access.redhat.com/errata/RHSA-2023:7641\">https://access.redhat.com/errata/RHSA-2023:7641</a>."))
 
     ((and (string= cve "CVE-2023-44487")
           (equal locations '("/opt/eap/bin/client/jboss-client.jar"
