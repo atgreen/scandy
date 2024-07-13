@@ -50,7 +50,7 @@
      '("False Positive"
        "This is a false positive. EAP 7.4 does not provide the vulnerable provider-url configuration option in its OIDC implementation and is not affected by this flaw."))
 
-    ((and (or (string= cve "CVE=2023-5865") (string= cve "CVE-2023-44487"))
+    ((and (or (string= cve "CVE-2023-5685") (string= cve "CVE-2023-44487"))
           (equal locations '("/opt/eap/bin/client/jboss-cli-client.jar"
                              "/opt/eap/bin/client/jboss-client.jar"
                              "/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/org/jboss/eap/wildfly-client-all/7.4.17.GA-redhat-00002/wildfly-client-all-7.4.17.GA-redhat-00002.jar"
