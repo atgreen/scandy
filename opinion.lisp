@@ -117,18 +117,29 @@
      '("Ignorable"
        "This is a junk CVE.  The upstream binutils project rejects this bug as a security issue, in accordance with <a href=\"https://sourceware.org/git/?p=binutils-gdb.git;a=blob_plain;f=binutils/SECURITY.txt;h=f16b0c9d7099150e0f116e9e681c424eea3915fe;hb=HEAD\">their security policy</a>."))
 
-    ((and (string= cve "CVE-2022-40897") (equal locations '("/opt/app-root/lib/python3.9/site-packages/setuptools-53.0.0.dist-info/METADATA" "setuptools-53.0.0")))
+    ((and (string= cve "CVE-2022-40897")
+          (equal locations '("/opt/app-root/lib/python3.9/site-packages/setuptools-53.0.0.dist-info/METADATA" "setuptools-53.0.0")))
      '("False Positive"
        "This is a false positive.  This container image contains a fixed
 version of python-setuptools (see <a
 href=\"https://access.redhat.com/errata/RHSA-2023:0952\">https://access.redhat.com/errata/RHSA-2023:0952</a>).
 The scanner is not identifying the problem in this fixed copy of
 python-setuptools because it can associate those files with the RPM
-package that it knows contains the fix.  However, this container image
-also contains a python virtual environment in
-<code>/opt/app-root</code> that contains copies of those original
-fixed source files.  The scanner is unable to correctly detect that
-these copies came from Red Hat's fixed python-setuptools."))
+package that it knows contains the fix.
+The scanner correctly recognizes that this fixed copy of
+python-setuptools is not vulnerable to CVE-2022-40897.
+However, the container image also contains a Python virtual environment in <code>/opt/app-root</code>, which includes copies of these fixed Python files. The scanner is unable to detect that these copies originated from Red Hat's fixed python-setuptools."))
+
+    ((and (string= cve "CVE-2022-40897")
+          (equal locations '("/opt/app-root/lib/python3.9/site-packages/setuptools-50.3.2.dist-info/METADATA" "setuptools-50.3.2")))
+     '("False Positive"
+       "This is a false positive.  This container image contains a fixed
+version of python-setuptools (see <a
+href=\"https://access.redhat.com/errata/RHSA-2024:2985\">https://access.redhat.com/errata/RHSA-2024:2985</a>).
+The scanner correctly recognizes that this fixed copy of
+python-setuptools is not vulnerable to CVE-2022-40897.
+However, the container image also contains a Python virtual environment in <code>/opt/app-root</code>, which includes copies of these fixed Python files. The scanner is unable to detect that these copies originated from Red Hat's fixed python-setuptools."))
+
 
     ((and (string= cve "CVE-2022-3509") (find "/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/org/infinispan/protostream/protostream/4.3.6.Final-redhat-00001/protostream-4.3.6.Final-redhat-00001.jar" locations :test 'equal))
      '("False Positive"
@@ -184,7 +195,7 @@ relates to the <code>oc</code> command."))
 source code.  Red Hat builds multiple packages from the
 <code>emacs</code> project source code, some of which do not contain
 the specific code that triggered this CVE.  However, Red Hat's policy
-is to taint every subpackage built from the vulnerable source package
+is to taint every binary RPM built from the vulnerable source package
 with the same vulnerability.  In this specific case,
 <code>emacs-filesystem</code> only contains empty directories, and no
 software at all.  It is only installed as a dependency for other
@@ -213,7 +224,6 @@ not typically required in containerized applications.
 When <code>less</code> is not present, <code>git</code> will just cat log output instead of paging it."))
 
     ((and (string= cve "CVE-2024-1233")
-          (or (format t "***** CVE-2024-1223: ~A" locations) t)
           (equal locations '("/opt/eap/bin/client/jboss-client.jar"
                              "/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/org/jboss/eap/wildfly-client-all/7.4.17.GA-redhat-00002/wildfly-client-all-7.4.17.GA-redhat-00002.jar"
                              "/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/org/wildfly/security/wildfly-elytron-realm-token/1.15.23.Final-redhat-00001/wildfly-elytron-realm-token-1.15.23.Final-redhat-00001.jar"
@@ -229,7 +239,7 @@ When <code>less</code> is not present, <code>git</code> will just cat log output
 source code.  Red Hat builds multiple packages from the
 <code>openssh</code> project source code, some of which do not contain
 the specific code that triggered this CVE.  However, Red Hat's policy
-is to taint every subpackage built from the vulnerable source package
+is to taint every binary RPM built from the vulnerable source package
 with the same vulnerability.  In this specific case, the vulnerability lies in <code>sshd</code>, which is distributed in the <code>openssh-server</code> RPM.  This package is not installed in this container image.  Consider a global exception for this vulnerability when <code>openssh-server</code> is not installed in your container image.
 <br>
 Alternatively, you may consider removing the <code>openssh</code> and
