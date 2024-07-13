@@ -39,6 +39,11 @@
      '("False Positive"
        "This is a false positive.  This CVE was fixed in the EAP 4.7.6 security advisory update <a href=\"https://access.redhat.com/errata/RHSA-2022:5893\">https://access.redhat.com/errata/RHSA-2022:5893</a>."))
 
+    ((and (string= cve "CVE-2022-1471")
+          (equal locations '("org.yaml:snakeyaml-1.33.0.SP1-redhat-00001")))
+     '("False Positive"
+       "This is a false positive.  This CVE was fixed in the EAP 4.7.10 security advisory update <a href=\"https://access.redhat.com/errata/RHSA-2023:1513\">https://access.redhat.com/errata/RHSA-2023:1513</a>."))
+
     ((and (string= cve "CVE-2022-23913")
           (equal locations '("/opt/eap/bin/client/jboss-client.jar"
                              "/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/org/apache/activemq/artemis-core-client/2.16.0.redhat-00052/artemis-core-client-2.16.0.redhat-00052.jar"
