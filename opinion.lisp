@@ -28,7 +28,12 @@
 (defun get-opinion (cve components locations image)
   (cond
 
-    ((and (string= cve "CVE-2022-25647")
+   ((and (string= cve "CVE-2024-23898")
+         (equal locations '("org.jenkins-ci.main:jenkins-core-2.440.3")))
+    '("False Positive"
+       "This is a false positive.  This CVE was fixed in the OCP 4.12 Jenkins security advisory update <a href=\"https://access.redhat.com/errata/RHSA-2024:0778\">https://access.redhat.com/errata/RHSA-2024:0778</a>."))
+
+   ((and (string= cve "CVE-2022-25647")
           (equal locations '("/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/org/infinispan/protostream/protostream/4.3.6.Final-redhat-00001/protostream-4.3.6.Final-redhat-00001.jar"
                              "com.google.code.gson:gson-2.8.5.redhat-00002")))
      '("False Positive"
