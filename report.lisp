@@ -770,6 +770,14 @@
          </table>
          <br>
          <h2>Scanned image reports</h2>
+         <table class="table table-hover">
+         <thead class="thead-dark" >
+         <tr><th>Technology</th><th>Images</th></tr>
+         </thead>
+         <tbody>
+         <tr>
+         <td>Base</td>
+         <td>
          <ul>
          <li><a href="registry.access.redhat.com--ubi8-with-updates.html">registry.access.redhat.com/ubi8</a></li>
          <li><a href="registry.access.redhat.com--ubi9-with-updates.html">registry.access.redhat.com/ubi9</a></li>
@@ -777,30 +785,42 @@
          <li><a href="registry.access.redhat.com--ubi8-minimal-with-updates.html">registry.access.redhat.com/ubi8-minimal </a></li>
          <li><a href="registry.access.redhat.com--ubi9-micro-with-updates.html">registry.access.redhat.com/ubi9-micro </a></li>
          <li><a href="registry.access.redhat.com--ubi8-micro-with-updates.html">registry.access.redhat.com/ubi8-micro </a></li>
+         </ul></td></tr>
+         <tr><td>OpenJDK</td><td><ul>
          <li><a href="registry.access.redhat.com--ubi8--openjdk-8-with-updates">registry.access.redhat.com/ubi8/openjdk-8</a></li>
          <li><a href="registry.access.redhat.com--ubi8--openjdk-21-with-updates">registry.access.redhat.com/ubi8/openjdk-21</a></li>
          <li><a href="registry.access.redhat.com--ubi9--openjdk-21-with-updates">registry.access.redhat.com/ubi9/openjdk-21</a></li>
          <li><a href="registry.redhat.io--ubi8--openjdk-8-runtime-with-updates">registry.redhat.io/ubi8/openjdk-8-runtime</a></li>
          <li><a href="registry.redhat.io--ubi8--openjdk-21-runtime-with-updates">registry.redhat.io/ubi8/openjdk-21-runtime</a></li>
          <li><a href="registry.redhat.io--ubi9--openjdk-21-runtime-with-updates">registry.redhat.io/ubi9/openjdk-21-runtime</a></li>
+         </ul></td></tr>
+         <tr><td>NodeJS</td><td><ul>
          <li><a href="registry.access.redhat.com--ubi9--nodejs-18-with-updates">registry.access.redhat.com/ubi9/nodejs-18</a></li>
          <li><a href="registry.access.redhat.com--ubi9--nodejs-20-with-updates">registry.access.redhat.com/ubi9/nodejs-20</a></li>
+         </ul></td></tr>
+         <tr><td>Python</td><td><ul>
          <li><a href="registry.access.redhat.com--ubi8--python-39-with-updates.html">registry.access.redhat.com/ubi8/python-39</a></li>
          <li><a href="registry.access.redhat.com--ubi8--python-311-with-updates.html">registry.access.redhat.com/ubi8/python-311</a></li>
          <li><a href="registry.access.redhat.com--ubi8--python-312-with-updates.html">registry.access.redhat.com/ubi8/python-312</a></li>
          <li><a href="registry.access.redhat.com--ubi9--python-39-with-updates.html">registry.access.redhat.com/ubi9/python-39</a></li>
          <li><a href="registry.access.redhat.com--ubi9--python-311-with-updates.html">registry.access.redhat.com/ubi9/python-311</a></li>
          <li><a href="registry.access.redhat.com--ubi9--python-312-with-updates.html">registry.access.redhat.com/ubi9/python-312</a></li>
+         </ul></td></tr>
+         <tr><td>EAP</td><td><ul>
          <li><a href="registry.redhat.io--jboss-eap-7--eap74-openjdk11-openshift-rhel8-with-updates.html">registry.redhat.io/jboss-eap-7/eap74-openjdk11-openshift-rhel8</a></li>
          <li><a href="registry.redhat.io--jboss-eap-7--eap74-openjdk11-runtime-openshift-rhel8-with-updates.html">registry.redhat.io/jboss-eap-7/eap74-openjdk11-runtime-openshift-rhel8</a></li>
+         </ul></td></tr>
+         <tr><td>.NET</td><td><ul>
          <li><a href="registry.redhat.io--ubi8--dotnet-80-with-updates.html">registry.redhat.io/ubi8/dotnet-80</a></li>
          <li><a href="registry.redhat.io--ubi8--dotnet-60-with-updates.html">registry.redhat.io/ubi8/dotnet-60</a></li>
          <li><a href="registry.redhat.io--ubi8--dotnet-80-runtime-with-updates.html">registry.redhat.io/ubi8/dotnet-80-runtime</a></li>
          <li><a href="registry.redhat.io--ubi8--dotnet-60-runtime-with-updates.html">registry.redhat.io/ubi8/dotnet-60-runtime</a></li>
+         </ul></td></tr>
+         <tr><td>Apps</td><td><ul>
          <li><a href="registry.redhat.io--ocp-tools-4--jenkins-rhel8--v4.12.0-1716801209-with-updates">registry.redhat.io/ocp-tools-4/jenkins-rhel8:v4.12.0-1716801209</a></li>
          <li><a href="registry.redhat.io--ocp-tools-4--jenkins-rhel8--v4.14.0-1716468091-with-updates">registry.redhat.io/ocp-tools-4/jenkins-rhel8:v4.14.0-1716468091</a></li>
          <li><a href="registry.redhat.io--ansible-automation-platform-24--ee-supported-rhel8-with-updates">registry.redhat.io/ansible-automation-platform-24/ee-supported-rhel8</a></li>
-         </ul>
+         </ul></td></tr></tbody></table>
          </page-template>
          stream))))
     (sb-ext:quit))
