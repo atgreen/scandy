@@ -343,7 +343,7 @@
     <footer class="footer">
         <div class="container">
              <div class="text-center py-3">&copy; 2024 <a href="https://linkedin.com/in/green">Anthony Green</a></div>
-  <p>Scandy is an experiment, the source code for which is available under the terms of the MIT license at <a href="https://github.com/atgreen/scandy">https://github.com/atgreen/scandy</a>.</p>
+  <p>Scandy is an experiment by [Anthony Green](https://github.com/atgreen), the source code for which is available under the terms of the MIT license at <a href="https://github.com/atgreen/scandy">https://github.com/atgreen/scandy</a>.  Scandy 'opinions' are not comprehensive and in some cases may be incorrect.  Submit new opinions as pull requests, and questions or comments as <a href="https://github.com/atgreen/scandy/issues/new">github issues</a>.</p>
         </div>
     </footer>
     <modals-template>
