@@ -28,6 +28,13 @@
 (defun get-opinion (cve components locations image)
   (cond
 
+   ((and (string= cve "CVE-2022-34169")
+         (equal locations
+                '("/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/xalan/xalan/2.7.1.redhat-00014/xalan-2.7.1.redhat-00014.jar"
+                  "xalan:xalan-2.7.1.redhat-00014")))
+    '("False Positive"
+      "This is a false positive.  According to Red Hat, the vulnerable code is not included in the jar files used by EAP.  See <a href=\"https://access.redhat.com/solutions/6994572\">https://access.redhat.com/solutions/6994572</a> for details."))
+
    ((and (string= cve "CVE-2014-0107")
          (equal locations
                 '("/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/xalan/xalan/2.7.1.redhat-00014/xalan-2.7.1.redhat-00014.jar"
