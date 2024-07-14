@@ -28,6 +28,20 @@
 (defun get-opinion (cve components locations image)
   (cond
 
+   ((and (string= cve "CVE-2014-0107")
+         (equal locations
+                '("/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/xalan/xalan/2.7.1.redhat-00014/xalan-2.7.1.redhat-00014.jar"
+                  "xalan:xalan-2.7.1.redhat-00014")))
+    '("False Positive"
+      "This is a false positive.  EAP 7 is not vulnerable to this CVE according to their document here: <a href=\"https://access.redhat.com/solutions/917873\">https://access.redhat.com/solutions/917873</a>."))
+
+   ((and (string= cve "CVE-2014-3530")
+         (equal locations
+                '("/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/org/picketlink/picketlink-common/2.5.5.SP12-redhat-00013/picketlink-common-2.5.5.SP12-redhat-00013.jar"
+                  "org.picketlink:picketlink-common-2.5.5.SP12-redhat-00013")))
+    '("False Positive"
+      "This is a false positive.  This CVE was fixed in EAP 5 and 6.   EAP 7 was released 7 years after this CVE, and was never affected by it."))
+
    ((and (string= cve "CVE-2024-23898")
          (equal locations '("org.jenkins-ci.main:jenkins-core-2.440.3")))
     '("False Positive"
