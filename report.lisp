@@ -798,6 +798,7 @@
          <li><a href="registry.redhat.io--ubi8--dotnet-80-runtime-with-updates.html">registry.redhat.io/ubi8/dotnet-80-runtime</a></li>
          <li><a href="registry.redhat.io--ubi8--dotnet-60-runtime-with-updates.html">registry.redhat.io/ubi8/dotnet-60-runtime</a></li>
          <li><a href="registry.redhat.io--ocp-tools-4--jenkins-rhel8--v4.12.0-1716801209-with-updates">registry.redhat.io/ocp-tools-4/jenkins-rhel8:v4.12.0-1716801209</a></li>
+         <li><a href="registry.redhat.io--ocp-tools-4--jenkins-rhel8--v4.14.0-1716468091-with-updates">registry.redhat.io/ocp-tools-4/jenkins-rhel8:v4.14.0-1716468091</a></li>
          <li><a href="registry.redhat.io--ansible-automation-platform-24--ee-supported-rhel8-with-updates">registry.redhat.io/ansible-automation-platform-24/ee-supported-rhel8</a></li>
          </ul>
          </page-template>

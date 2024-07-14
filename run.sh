@@ -65,6 +65,7 @@ for IMAGE in     registry.redhat.io/ansible-automation-platform-24/ee-supported-
                  registry.access.redhat.com/ubi9/nodejs-20 \
                  registry.redhat.io/jboss-eap-7/eap74-openjdk11-openshift-rhel8 \
                  registry.redhat.io/ocp-tools-4/jenkins-rhel8:v4.12.0-1716801209 \
+                 registry.redhat.io/ocp-tools-4/jenkins-rhel8:v4.14.0-1716468091 \
                  registry.access.redhat.com/ubi8/openjdk-8 \
                  registry.access.redhat.com/ubi8/openjdk-21 \
                  registry.access.redhat.com/ubi9/openjdk-21 \
