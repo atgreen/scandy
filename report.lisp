@@ -172,13 +172,10 @@
 (defmethod initialize-instance ((vuln redhat-vulnerability) &key json)
   "Initialize a redhat-vulnerability from decoded json data."
   (call-next-method)
-  (with-slots (id severity published-date component description) vuln
+  (with-slots (id severity published-date component description references title) vuln
     (setf id (cdr (assoc :NAME json)))
     (setf severity (capitalize-word (cdr (assoc :THREAT--SEVERITY json))))
-    (setf description (let ((d ""))
-                        (loop for p in (cdr (assoc :DETAILS json))
-                              do (setf d (concatenate 'string d "<p>" (replace-newlines-with-br (cl-who:escape-string p)) "</p>")))
-                        d))
+    (setf description (replace-newlines-with-br (cl-who:escape-string (cadr (assoc :DETAILS json)))))
     (setf references (cdr (assoc :REFERENCES json)))
     (setf published-date (local-time:parse-timestring (cdr (assoc :PUBLIC--DATE json))))
     (setf title (cdr (assoc :DESCRIPTION (cdr (assoc :BUGZILLA json)))))))
@@ -195,11 +192,11 @@
   (let ((v (find-if (lambda (v) (eq (type-of v) 'redhat-vulnerability)) vulns)))
     (if v
         (description v)
-        (let ((v (find-if (lambda (v) (eq (type-of v) 'trivy-vulnerability)) vulns)))
-          (if v
-              (description v)
-              (let ((v (find-if (lambda (v) (eq (type-of v) 'grype-vulnerability)) vulns)))
-                (description v)))))))
+      (let ((v (find-if (lambda (v) (eq (type-of v) 'trivy-vulnerability)) vulns)))
+        (if v
+            (description v)
+          (let ((v (find-if (lambda (v) (eq (type-of v) 'grype-vulnerability)) vulns)))
+            (description v)))))))
 
 (defvar *ordered-vulns* nil)
 
