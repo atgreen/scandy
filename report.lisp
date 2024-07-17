@@ -747,11 +747,11 @@
                            <tr>
                            <td class="no-wrap"> ,(progn id) </td>
                            <td> ,(princ-to-string (first (car data-list))) </td>
-                           <td> <ul> ,(progn (format nil "~{ ~A~}"
+                           <td> <ul> ,(progn (format nil "~{<li>~A</li>~}"
                                                 (remove-duplicates
                                                  (sort
                                                   (uiop:split-string
-                                                   (format nil "~{<li>~A</li>~}"
+                                                   (format nil "~{ ~A~}"
                                                            (loop for data in data-list
                                                                  collect (second data))))
                                                    #'string<)
