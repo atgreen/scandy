@@ -748,14 +748,15 @@
                            <td class="no-wrap"> ,(progn id) </td>
                            <td> ,(princ-to-string (first (car data-list))) </td>
                            <td> <ul> ,(markup:unescaped (format nil "~{<li>~A</li>~}"
-                                                                (remove-duplicates
-                                                                 (sort
-                                                                  (uiop:split-string
-                                                                   (format nil "~{ ~A~}"
-                                                                           (loop for data in data-list
-                                                                                 collect (second data))))
-                                                                  #'string<)
-                                                                 :test #'string=)))
+                                                                (remove ""
+                                                                        (remove-duplicates
+                                                                         (sort
+                                                                          (uiop:split-string
+                                                                           (format nil "~{ ~A~}"
+                                                                                   (loop for data in data-list
+                                                                                         collect (second data))))
+                                                                          #'string<)
+                                                                         :test #'string=))))
                            </ul> </td>
                            <td style=(severity-style (third (car data-list))) > ,(progn (third (car data-list))) </td>
                            <td> <ul>
