@@ -33,6 +33,11 @@
     '("False Positive"
       "This is a false positive.  This CVE was fixed in the security advisory update <a href=\"https://access.redhat.com/errata/RHSA-2024:4573\">https://access.redhat.com/errata/RHSA-2024:4573</a> by <code>java-21-openjdk-headless-1:21.0.4.0.7-1.el9</code> and related packages, which are already installed in this image."))
 
+   ((and (string= cve "CVE-2024-21145")
+         (find "java-21-openjdk-headless-1:21.0.4.0.7-1.el8" locations :test 'equal))
+    '("False Positive"
+      "This is a false positive.  This CVE was fixed in the security advisory update <a href=\"https://access.redhat.com/errata/RHSA-2024:4573\">https://access.redhat.com/errata/RHSA-2024:4573</a> by <code>java-21-openjdk-headless-1:21.0.4.0.7-1.el8</code> and related packages, which are already installed in this image."))
+
    ((and (string= cve "CVE-2022-34169")
          (equal locations
                 '("/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/xalan/xalan/2.7.1.redhat-00014/xalan-2.7.1.redhat-00014.jar"
