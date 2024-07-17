@@ -433,7 +433,7 @@
                     if (!filterOn) {
                         return true;
                     }
-                    return data[2] !== 'kernel-headers'; // 2 is the index of the Component column
+                    return !data[2].includes('kernel-headers');
                 }
             );
 
