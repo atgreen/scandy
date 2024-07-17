@@ -28,12 +28,12 @@
 (defun get-opinion (cve components locations image)
   (cond
 
-   ((and (find cve '("CVE-2024-21145" "CVE-2024-21138" "CVE-2024-21131") :test equal)
+   ((and (find cve '("CVE-2024-21145" "CVE-2024-21138" "CVE-2024-21131") :test 'equal)
          (find "java-21-openjdk-headless-1:21.0.4.0.7-1.el9" locations :test 'equal))
     '("False Positive"
       "This is a false positive.  This CVE was fixed in the security advisory update <a href=\"https://access.redhat.com/errata/RHSA-2024:4573\">https://access.redhat.com/errata/RHSA-2024:4573</a> by <code>java-21-openjdk-headless-1:21.0.4.0.7-1.el9</code> and related packages, which are already installed in this image."))
 
-   ((and (find cve '("CVE-2024-21145" "CVE-2024-21138" "CVE-2024-21131") :test equal)
+   ((and (find cve '("CVE-2024-21145" "CVE-2024-21138" "CVE-2024-21131") :test 'equal)
          (find "java-21-openjdk-headless-1:21.0.4.0.7-1.el8" locations :test 'equal))
     '("False Positive"
       "This is a false positive.  This CVE was fixed in the security advisory update <a href=\"https://access.redhat.com/errata/RHSA-2024:4573\">https://access.redhat.com/errata/RHSA-2024:4573</a> by <code>java-21-openjdk-headless-1:21.0.4.0.7-1.el8</code> and related packages, which are already installed in this image."))
