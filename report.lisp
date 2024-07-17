@@ -756,7 +756,8 @@
                                                                                    (loop for data in data-list
                                                                                          collect (second data))))
                                                                           #'string<)
-                                                                         :test #'string=))))
+                                                                         :test #'string=)
+                                                                        :test #'string=)))
                            </ul> </td>
                            <td style=(severity-style (third (car data-list))) > ,(progn (third (car data-list))) </td>
                            <td> <ul>
