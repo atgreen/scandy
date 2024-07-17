@@ -191,8 +191,8 @@ However, the container image also contains a Python virtual environment in <code
        "This is a false positive.  While <code>protostream-4.3.6.Final-redhat-00001.jar</code> does contain certain class files from <code>protobuf-java-3.15.2</code>, it does not contain the class file with the vulnerability (<code>com.google.protobuf.MessageReflection</code>)."))
 
     ((and (string= cve "CVE-2022-3171")
-          (equal location '("/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/org/infinispan/protostream/protostream/4.3.6.Final-redhat-00001/protostream-4.3.6.Final-redhat-00001.jar"
-                            "com.google.protobuf:protobuf-java-3.15.2")))
+          (equal locations '("/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/org/infinispan/protostream/protostream/4.3.6.Final-redhat-00001/protostream-4.3.6.Final-redhat-00001.jar"
+                             "com.google.protobuf:protobuf-java-3.15.2")))
      '("False Positive"
        "This is a false positive.  While <code>protostream-4.3.6.Final-redhat-00001.jar</code> does contain certain class files from <code>protobuf-java-3.15.2</code>, it does not contain the class file with the vulnerability (<code>com.google.protobuf.UnknownFieldSet</code>)."))
 
