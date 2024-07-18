@@ -213,6 +213,13 @@
                 </div>
                 <div class="modal-body">
                 <h2>Security Advisory: ,(progn (id (car vulns))) </h2>
+                ,(progn (let ((opinion (get-opinion (id (car vulns)) (collect-components vulns) (collect-locations vulns) *image-name*)))
+                          (when opinion
+                            <markup:merge-tag>
+                            <h3>Scandy Opinion: </h3>
+                            ,(markup:unescaped (cadr opinion))
+                            </markup:merge-tag>
+                            )))
                 <h3>Description:</h3> ,(markup:unescaped (get-description vulns))
                 ,(progn (let ((locations (collect-locations vulns)))
                           (when locations
@@ -223,13 +230,6 @@
                                         <li> ,(progn location) </li>)
                                       locations)
                             </ul>
-                            </markup:merge-tag>
-                            )))
-                ,(progn (let ((opinion (get-opinion (id (car vulns)) (collect-components vulns) (collect-locations vulns) *image-name*)))
-                          (when opinion
-                            <markup:merge-tag>
-                            <h3>Scandy Opinion: </h3>
-                            ,(markup:unescaped (cadr opinion))
                             </markup:merge-tag>
                             )))
                 <h3>References:</h3>
