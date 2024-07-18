@@ -29,14 +29,14 @@
   (cond
 
    ((and (find cve '("CVE-2024-21147" "CVE-2024-21131" "CVE-2024-21138" "CVE-2024-21140" "CVE-2024-21144" "CVE-2024-21145") :test 'equal)
-         (find "java-1.8.0-openjdk-1:1.8.0.422.b05-2.el8" locations :test 'equal))
+         (find "java-1.8.0-openjdk-headless-1:1.8.0.422.b05-2.el8" locations :test 'equal))
     '("False Positive"
-      "This is a false positive.  This CVE was fixed in the security advisory update <a href=\"https://access.redhat.com/errata/RHSA-2024:4563\">https://access.redhat.com/errata/RHSA-2024:4563</a> by <code>java-1.8.0-openjdk-1:1.8.0.422.b05-2.el8</code> and related packages, which are already installed in this image."))
+      "This is a false positive.  This CVE was fixed in the security advisory update <a href=\"https://access.redhat.com/errata/RHSA-2024:4563\">https://access.redhat.com/errata/RHSA-2024:4563</a> by <code>java-1.8.0-openjdk-headless-1:1.8.0.422.b05-2.el8</code> and related packages, which are already installed in this image."))
 
    ((and (find cve '("CVE-2024-21147" "CVE-2024-21131" "CVE-2024-21138" "CVE-2024-21140" "CVE-2024-21144" "CVE-2024-21145") :test 'equal)
-         (find "java-11-openjdk-1:11.0.24.0.8-3.el8" locations :test 'equal))
+         (find "java-11-openjdk-headless-1:11.0.24.0.8-3.el8" locations :test 'equal))
     '("False Positive"
-      "This is a false positive.  This CVE was fixed in the security advisory update <a href=\"https://access.redhat.com/errata/RHSA-2024:4566\">https://access.redhat.com/errata/RHSA-2024:4566</a> by <code>java-11-openjdk-1:11.0.24.0.8-3.el8</code> and related packages, which are already installed in this image."))
+      "This is a false positive.  This CVE was fixed in the security advisory update <a href=\"https://access.redhat.com/errata/RHSA-2024:4566\">https://access.redhat.com/errata/RHSA-2024:4566</a> by <code>java-11-openjdk-headless-1:11.0.24.0.8-3.el8</code> and related packages, which are already installed in this image."))
 
    ((and (find cve '("CVE-2024-21145" "CVE-2024-21138" "CVE-2024-21131") :test 'equal)
          (find "java-21-openjdk-headless-1:21.0.4.0.7-1.el9" locations :test 'equal))
