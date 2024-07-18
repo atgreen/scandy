@@ -225,7 +225,7 @@ RUN rpm -e mod_http2
 RUN rpm -e httpd httpd-core httpd-devel httpd-filesystem httpd-tools mod_ldap mod_lua mod_session mod_ssl mod_auth_gssapi mod_http2
 </pre>"))
 
-    ((or (string= cve "CVE-2023-2222") (string= cve "CVE-2019-1010022"))
+    ((find cve '("CVE-2023-2222" "CVE-2019-1010022" "CVE-2022-3554" "CVE-2022-3555") :test 'equal)
      '("Ignorable"
        "This is a junk CVE rejected by upstream.  Consider a global exception policy for this CVE."))
 
