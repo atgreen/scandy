@@ -28,6 +28,12 @@
 (defun get-opinion (cve components locations image)
   (cond
 
+    ((and (string= cve "CVE-2022-45047")
+          (equal locations '("/usr/lib/jenkins/subversion.hpi"))
+          (string= image "registry.redhat.io/ocp-tools-4/jenkins-rhel8:v4.14.0-1716468091"))
+     '("False Positive"
+       "This is a false positive.  The scanner is detecting CVE-2022-45047 in <code>/usr/lib/jenkins/subversion.hpi</code>, which is installed through the <code>jenkins-2-plugins</code> RPM.  CVE-2022-45047 was addressed in a much earlier OpenShift Developer Tools and Services RHSA for OCP 4.12: <a href=\"https://access.redhat.com/errata/RHSA-2023:1064\">https://access.redhat.com/errata/RHSA-2023:1064</a>.  Seeing as this was fixed in 4.12, well before 4.14, this image does not contain CVE-2022-45047 and is a false positive."))
+
     ((and (string= cve "GHSA-m425-mq94-257g")
           (equal locations '("/usr/bin/oc"
                              "google.golang.org/grpc-v1.51.0"))
