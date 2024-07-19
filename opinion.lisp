@@ -28,6 +28,12 @@
 (defun get-opinion (cve components locations image)
   (cond
 
+    ((and (string= cve "CVE-2024-24790")
+          (or (find "stdlib-1.19.13" locations :test 'equal)
+              (find "stdlib-1.20.12" locations :test 'equal)))
+     '("Ignorable"
+       "Red Hat has rated this CVE as Medium severity in the context of RHEL, and does not intend to update <code>git-lfs</code> or <code>oc</code> to address this CVE.  Specifically, Red Hat differs from the NVD rating based on: <ul><li>Attack Vector: Local, not Network</li><li>Attack Complexity: High, not Low</li><li>Availability Impact: None, not High</li></ul>"))
+
     ((and (string= cve "CVE-2022-1471")
           (equal locations '("/usr/share/java/prometheus-jmx-exporter/jmx_prometheus_javaagent.jar")))
      '("False Positive"
