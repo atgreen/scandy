@@ -28,7 +28,13 @@
 (defun get-opinion (cve components locations image)
   (cond
 
-   ((and (find cve '("CVE-2024-21147" "CVE-2024-21131" "CVE-2024-21138" "CVE-2024-21140" "CVE-2024-21144" "CVE-2024-21145") :test 'equal)
+    ((and (string= cve "CVE-2022-1471")
+          (equal locations '("/usr/share/java/prometheus-jmx-exporter/jmx_prometheus_javaagent.jar")))
+     '("False Positive"
+       "This is a false positive.  CVE-2022-1471 was fixed for <code>prometheus-jmx-exporter</code> in security advisory update <a
+href=\"https://access.redhat.com/errata/RHSA-2022:9058\">https://access.redhat.com/errata/RHSA-2022:9058</a>."))
+
+    ((and (find cve '("CVE-2024-21147" "CVE-2024-21131" "CVE-2024-21138" "CVE-2024-21140" "CVE-2024-21144" "CVE-2024-21145") :test 'equal)
          (find "java-1.8.0-openjdk-headless-1:1.8.0.422.b05-2.el8" locations :test 'equal))
     '("False Positive"
       "This is a false positive.  This CVE was fixed in the security advisory update <a href=\"https://access.redhat.com/errata/RHSA-2024:4563\">https://access.redhat.com/errata/RHSA-2024:4563</a> by <code>java-1.8.0-openjdk-headless-1:1.8.0.422.b05-2.el8</code> and related packages, which are already installed in this image."))
