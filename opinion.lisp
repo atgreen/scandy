@@ -193,7 +193,7 @@ href=\"https://access.redhat.com/errata/RHSA-2022:9058\">https://access.redhat.c
               (string= cve "CVE-2021-42392"))
           (equal locations '("/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/com/h2database/h2/1.4.197.redhat-00004/h2-1.4.197.redhat-00004.jar" "com.h2database:h2-1.4.197.redhat-00004")))
      '("False Positive"
-       "This is a false positive.  This CVE was fixed in the EAP 4.7.5 security advisory update <a href=\"https://access.redhat.com/errata/RHSA-2022:4919\">https://access.redhat.com/errata/RHSA-2022:4919</a>."))
+       "This is a false positive.  This CVE was fixed in the EAP 7.4.5 security advisory update <a href=\"https://access.redhat.com/errata/RHSA-2022:4919\">https://access.redhat.com/errata/RHSA-2022:4919</a>."))
 
     ((string= cve "CVE-2021-32256")
      '("Ignorable"
