@@ -28,6 +28,11 @@
 (defun get-opinion (cve components locations image)
   (cond
 
+    ((and (string= cve "CVE-2024-38095")
+          (string= image "registry.redhat.io/ubi8/dotnet-80"))
+     '("False Positive"
+       "This is a false positive.  CVE-2024-38095 was addressed in <a href=\"https://access.redhat.com/errata/RHSA-2024:4451\">RHSA-2024:4451</a>."))
+
     ((and (string= cve "CVE-2024-21626")
           (equal locations '("/usr/bin/oc"
                              "github.com/opencontainers/runc-v1.0.1")))
