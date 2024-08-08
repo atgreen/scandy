@@ -28,6 +28,17 @@
 (defun get-opinion (cve components locations image)
   (cond
 
+    ((and (string= cve "CVE-2024-41110")
+          (equals locations '("/usr/bin/oc"
+                              "github.com/docker/docker-v20.10.3+incompatible")))
+     '("False Positive"
+       "The scanner is detecting the use of a vulnerable moby project version
+in <code>/usr/bin/oc</code>.  However, <code>oc</code> does not
+include moby's vulnerable authorization plugin code, therefore
+<code>oc</code> is not affected by this vulnerability.  Consider an
+exception policy for this CVE as it relates to the <code>oc</code>
+command."))
+
     ((and (string= cve "CVE-2024-0057")
           (string= image "registry.redhat.io/ubi8/dotnet-80"))
      '("False Positive"
