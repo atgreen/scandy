@@ -453,8 +453,9 @@
 
             // Display the local timestamp
             serverTimestampElement.textContent = `${localTimestamp}`;
-        });
+                                                        });
     </script>
+    <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "8e1dd302d9e14be28f4f6c3cfe7eaa3a"}'></script>
 </body>
 </html> )
 
