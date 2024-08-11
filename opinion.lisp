@@ -29,8 +29,11 @@
   (cond
 
     ((and (string= cve "CVE-2024-41110")
-          (equal locations '("/usr/bin/oc"
-                             "github.com/docker/docker-v20.10.3+incompatible")))
+          (or
+           (equal locations '("/usr/bin/oc"
+                              "github.com/docker/docker-v20.10.3+incompatible"))
+           (equal locations '("/usr/bin/oc"
+                              "github.com/docker/docker-v20.10.17+incompatible"))))
      '("False Positive"
        "The scanner is detecting the use of a vulnerable moby project version
 in <code>/usr/bin/oc</code>.  However, <code>oc</code> does not
