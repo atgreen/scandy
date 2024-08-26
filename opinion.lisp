@@ -28,6 +28,45 @@
 (defun get-opinion (cve components locations image)
   (cond
 
+    ((and (string= cve "CVE-2024-6345")
+          (equal locations '("/opt/app-root/lib/python3.11/site-packages/setuptools-65.5.1.dist-info/METADATA"
+                             "python3-setuptools-53.0.0-12.el9_4.1"
+                             "python3-setuptools-wheel-53.0.0-12.el9_4.1"
+                             "python3.11-setuptools-65.5.1-2.el9_4.1"
+                             "python3.11-setuptools-wheel-65.5.1-2.el9_4.1"
+                             "setuptools-65.5.1")))
+     '("False Positive"
+       "This is a false positive.  This container image contains a fixed
+version of python-setuptools (see <a
+href=\"https://access.redhat.com/errata/RHSA-2024:5534\">https://access.redhat.com/errata/RHSA-2024:5534</a>).
+This container image also contains a Python virtual environment in <code>/opt/app-root</code>, which includes copies of these fixed Python files. The scanner is unable to detect that these copies originated from Red Hat's fixed python-setuptools."))
+
+    ((and (string= cve "CVE-2024-6345")
+          (equal locations '("python3-setuptools-53.0.0-12.el9_4.1"
+                             "python3-setuptools-wheel-53.0.0-12.el9_4.1"
+                             "python3.12-setuptools-68.2.2-3.el9_4.1")))
+     '("False Positive"
+       "This is a false positive.  This container image contains fixed
+versions of python3-setuptools and python3.12-setuptools (see <a
+href=\"https://access.redhat.com/errata/RHSA-2024:5533\">https://access.redhat.com/errata/RHSA-2024:5533</a> and <a
+href=\"https://access.redhat.com/errata/RHSA-2024:5534\">https://access.redhat.com/errata/RHSA-2024:5534</a>)."))
+
+    ((and (string= cve "CVE-2024-43044")
+          (string= image "registry.redhat.io/ocp-tools-4/jenkins-rhel8:v4.12.0-1716801209")
+          (equal components '("/usr/lib/jenkins/jenkins.war"
+                              "org.jenkins-ci.main:jenkins-core-2.440.3"
+                              "org.jenkins-ci.main:remoting-3206.vb_15dcf73f6a_9")))
+     '("False Positive"
+       "This is a false positive.  CVE-2024-43044 was addressed in this image with <a href=\"https://access.redhat.com/errata/RHSA-2024:5410\">RHSA-2024:5410</a>."))
+
+    ((and (string= cve "CVE-2024-43044")
+          (string= image "registry.redhat.io/ocp-tools-4/jenkins-rhel8:v4.14.0-1716468091")
+          (equal components '("/usr/lib/jenkins/jenkins.war"
+                              "org.jenkins-ci.main:jenkins-core-2.440.3"
+                              "org.jenkins-ci.main:remoting-3206.vb_15dcf73f6a_9")))
+     '("False Positive"
+       "This is a false positive.  CVE-2024-43044 was addressed in this image with <a href=\"https://access.redhat.com/errata/RHSA-2024:5411\">RHSA-2024:5411</a>."))
+
     ((and (string= cve "CVE-2024-41110")
           (or
            (equal locations '("/usr/bin/oc"
