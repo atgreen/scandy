@@ -66,17 +66,17 @@ href=\"https://access.redhat.com/errata/RHSA-2024:5534\">https://access.redhat.c
 
     ((and (string= cve "CVE-2024-43044")
           (string= image "registry.redhat.io/ocp-tools-4/jenkins-rhel8:v4.12.0-1716801209")
-          (equal components '("/usr/lib/jenkins/jenkins.war"
-                              "org.jenkins-ci.main:jenkins-core-2.440.3"
-                              "org.jenkins-ci.main:remoting-3206.vb_15dcf73f6a_9")))
+          (equal locations '("/usr/lib/jenkins/jenkins.war"
+                             "org.jenkins-ci.main:jenkins-core-2.440.3"
+                             "org.jenkins-ci.main:remoting-3206.vb_15dcf73f6a_9")))
      '("False Positive"
        "This is a false positive.  CVE-2024-43044 was addressed in this image with <a href=\"https://access.redhat.com/errata/RHSA-2024:5410\">RHSA-2024:5410</a>."))
 
     ((and (string= cve "CVE-2024-43044")
           (string= image "registry.redhat.io/ocp-tools-4/jenkins-rhel8:v4.14.0-1716468091")
-          (equal components '("/usr/lib/jenkins/jenkins.war"
-                              "org.jenkins-ci.main:jenkins-core-2.440.3"
-                              "org.jenkins-ci.main:remoting-3206.vb_15dcf73f6a_9")))
+          (equal locations '("/usr/lib/jenkins/jenkins.war"
+                             "org.jenkins-ci.main:jenkins-core-2.440.3"
+                             "org.jenkins-ci.main:remoting-3206.vb_15dcf73f6a_9")))
      '("False Positive"
        "This is a false positive.  CVE-2024-43044 was addressed in this image with <a href=\"https://access.redhat.com/errata/RHSA-2024:5411\">RHSA-2024:5411</a>."))
 
