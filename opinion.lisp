@@ -28,6 +28,14 @@
 (defun get-opinion (cve components locations image)
   (cond
 
+    ((and (string= cve "CVE-2024-6162")
+          (equal locations '("/opt/eap/bin/client/jboss-client.jar"
+                             "/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/io/undertow/undertow-core/2.2.33.SP1-redhat-00001/undertow-core-2.2.33.SP1-redhat-00001.jar"
+                             "/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/org/jboss/eap/wildfly-client-all/7.4.18.GA-redhat-00001/wildfly-client-all-7.4.18.GA-redhat-00001.jar"
+                             "io.undertow:undertow-core-2.2.33.SP1-redhat-00001")))
+     '("False Positive"
+       "This is a false positive.  This CVE was fixed in the EAP 4.7.18 security advisory update <a href=\"https://access.redhat.com/errata/RHSA-2024:5144\">https://access.redhat.com/errata/RHSA-2024:5144</a>."))
+
     ((and (string= cve "CVE-2024-6345")
           (equal locations '("/opt/app-root/lib/python3.11/site-packages/setuptools-65.5.1.dist-info/METADATA"
                              "python3-setuptools-53.0.0-12.el9_4.1"
