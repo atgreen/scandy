@@ -28,6 +28,11 @@
 (defun get-opinion (cve components locations image)
   (cond
 
+   ((and (string= cve "CVE-2024-41909")
+         (string= image "registry.redhat.io/jboss-eap-7/eap74-openjdk11-openshift-rhel8"))
+    '("Ignorable"
+      "Red Hat product security has determined that EAP 7.4 is <a href=\"https://access.redhat.com/security/cve/CVE-2024-41909\">Not Affected</a> by CVE-2024-41909."))
+
     ((and (string= cve "CVE-2024-5971")
           (equal locations '("/opt/eap/bin/client/jboss-client.jar"
                              "/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/io/undertow/undertow-core/2.2.33.SP1-redhat-00001/undertow-core-2.2.33.SP1-redhat-00001.jar"
