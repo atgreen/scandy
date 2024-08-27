@@ -28,7 +28,7 @@
 (defun get-opinion (cve components locations image)
   (cond
 
-    ((and (string= cve "CVE-2024-6162")
+    ((and (string= cve "CVE-2024-5971")
           (equal locations '("/opt/eap/bin/client/jboss-client.jar"
                              "/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/io/undertow/undertow-core/2.2.33.SP1-redhat-00001/undertow-core-2.2.33.SP1-redhat-00001.jar"
                              "/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/org/jboss/eap/wildfly-client-all/7.4.18.GA-redhat-00001/wildfly-client-all-7.4.18.GA-redhat-00001.jar"
