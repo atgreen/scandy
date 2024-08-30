@@ -56,6 +56,21 @@ This container image also contains a Python virtual environment in <code>/opt/ap
 
     ((and (string= cve "CVE-2024-6345")
           (equal locations '("python3-setuptools-53.0.0-12.el9_4.1"
+                             "python3-setuptools-wheel-53.0.0-12.el9_4.1")))
+     '("False Positive"
+       "This is a false positive.  This container image contains a fixed
+version of python-setuptools (see <a
+href=\"https://access.redhat.com/errata/RHSA-2024:5534\">https://access.redhat.com/errata/RHSA-2024:5534</a>)."))
+
+    ((and (string= cve "CVE-2024-6345")
+          (equal locations '("python3-setuptools-wheel-53.0.0-12.el9_4.1")))
+     '("False Positive"
+       "This is a false positive.  This container image contains a fixed
+version of python3-setuptools-wheel (see <a
+href=\"https://access.redhat.com/errata/RHSA-2024:5534\">https://access.redhat.com/errata/RHSA-2024:5534</a>)."))
+
+    ((and (string= cve "CVE-2024-6345")
+          (equal locations '("python3-setuptools-53.0.0-12.el9_4.1"
                              "python3-setuptools-wheel-53.0.0-12.el9_4.1"
                              "python3.12-setuptools-68.2.2-3.el9_4.1")))
      '("False Positive"
