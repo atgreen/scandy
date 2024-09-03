@@ -55,6 +55,15 @@ href=\"https://access.redhat.com/errata/RHSA-2024:5534\">https://access.redhat.c
 This container image also contains a Python virtual environment in <code>/opt/app-root</code>, which includes copies of these fixed Python files. The scanner is unable to detect that these copies originated from Red Hat's fixed python-setuptools."))
 
     ((and (string= cve "CVE-2024-6345")
+          (equal locations '("/opt/app-root/lib/python3.11/site-packages/setuptools-65.5.1.dist-info/METADATA"
+                             "setuptools-65.5.1")))
+     '("False Positive"
+       "This is a false positive.  This container image contains a fixed
+version of python-setuptools (see <a
+href=\"https://access.redhat.com/errata/RHSA-2024:5534\">https://access.redhat.com/errata/RHSA-2024:5534</a>).
+This container image contains a Python virtual environment in <code>/opt/app-root</code>, which includes copies of the fixed python-setuptools files. The scanner is unable to detect that these copies originated from Red Hat's fixed python-setuptools."))
+
+    ((and (string= cve "CVE-2024-6345")
           (equal locations '("python3-setuptools-53.0.0-12.el9_4.1"
                              "python3-setuptools-wheel-53.0.0-12.el9_4.1")))
      '("False Positive"
