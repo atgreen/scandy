@@ -132,6 +132,16 @@ command."))
      '("False Positive"
        "This is a false positive.  CVE-2024-0057 was addressed in <a href=\"https://access.redhat.com/errata/RHSA-2024:0150\">RHSA-2024:0150</a>."))
 
+    ((and (string= cve "CVE-2024-0057")
+          (string= image "registry.redhat.io/ubi9/dotnet-60"))
+     '("False Positive"
+       "This is a false positive.  CVE-2024-0057 was addressed in <a href=\"https://access.redhat.com/errata/RHSA-2024:0156\">RHSA-2024:0156</a>."))
+
+    ((and (string= cve "CVE-2024-0057")
+          (string= image "registry.redhat.io/ubi8/dotnet-60"))
+     '("False Positive"
+       "This is a false positive.  CVE-2024-0057 was addressed in <a href=\"https://access.redhat.com/errata/RHSA-2024:0158\">RHSA-2024:0158</a>."))
+
     ((and (string= cve "CVE-2024-38095")
           (string= image "registry.redhat.io/ubi8/dotnet-80"))
      '("False Positive"
