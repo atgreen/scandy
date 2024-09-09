@@ -54,7 +54,7 @@ if ! test -f /usr/bin/sbcl; then
 fi
 
 # Clone the github advisory database
-#git clone --depth=1  https://github.com/github/advisory-database.git
+git clone --depth=1  https://github.com/github/advisory-database.git
 
 for IMAGE in     registry.redhat.io/ansible-automation-platform-24/ee-supported-rhel8 \
                  registry.redhat.io/ubi8/dotnet-80 \
