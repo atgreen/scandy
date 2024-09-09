@@ -154,8 +154,7 @@ command."))
        "This is a false positive.  The git commit to fix the problem in the upstream <code>runc</code> project can be reviewed here: <a href=\"https://github.com/opencontainers/runc/commit/02120488a4c0fc487d1ed2867e901eeed7ce8ecf\">https://github.com/opencontainers/runc/commit/02120488a4c0fc487d1ed2867e901eeed7ce8ecf</a>.   While <code>/usr/bin/oc</code> does use code from the vulnerable <code>runc</code> project, it only uses code from <code>github.com/opencontainers/runc/libcontainer/user</code>, which is unrelated to this CVE.  Accordingly, this is a false positive."))
 
     ((and (string= cve "CVE-2022-45047")
-          (equal locations '("/usr/lib/jenkins/subversion.hpi"))
-          (string= image "registry.redhat.io/ocp-tools-4/jenkins-rhel8:v4.14.0-1716468091"))
+          (equal locations '("/usr/lib/jenkins/subversion.hpi")))
      '("False Positive"
        "This is a false positive.  The scanner is detecting CVE-2022-45047 in <code>/usr/lib/jenkins/subversion.hpi</code>, which is installed through the <code>jenkins-2-plugins</code> RPM.  CVE-2022-45047 was addressed in a much earlier OpenShift Developer Tools and Services RHSA for OCP 4.12: <a href=\"https://access.redhat.com/errata/RHSA-2023:1064\">https://access.redhat.com/errata/RHSA-2023:1064</a>.  Seeing as this was fixed in 4.12, well before 4.14, this image does not contain CVE-2022-45047 and is a false positive."))
 
