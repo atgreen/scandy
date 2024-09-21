@@ -49,7 +49,7 @@ if ! test -f /usr/bin/sbcl; then
   sudo apt update
   sudo apt install sbcl sqlite3 libsqlite3-dev
   git clone https://github.com/ocicl/ocicl
-  (cd ocicl; sbcl --load setup.lisp; ocicl setup > ~/.sbclrc)
+  (cd ocicl; sbcl --eval "(defconstant +dynamic-space-size+ 2048)" --load setup.lisp; ocicl setup > ~/.sbclrc)
   ocicl install
 fi
 
