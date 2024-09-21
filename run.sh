@@ -45,13 +45,9 @@ function grype_scan {
     grype -o json=${1}/grype/${IMG}.json ${2}
 }
 
-if ! test -f /usr/bin/sbcl; then
-  sudo apt update
-  sudo apt install sbcl sqlite3 libsqlite3-dev
-  git clone https://github.com/ocicl/ocicl
-  (cd ocicl; sbcl --eval "(defconstant +dynamic-space-size+ 2048)" --load setup.lisp; ocicl setup > ~/.sbclrc)
-  ocicl install
-fi
+sudo apt update
+sudo apt install sqlite3 libsqlite3-dev
+brew install ocicl
 
 # Clone the github advisory database
 git clone --depth=1  https://github.com/github/advisory-database.git
