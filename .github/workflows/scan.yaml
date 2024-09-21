@@ -25,7 +25,7 @@ jobs:
         id: pages
         uses: actions/configure-pages@v5
       - name: Install tools
-        run: brew install trivy grype ocicl sqlite
+        run: brew install trivy grype ocicl sqlite && ocicl setup > ~/.sbclrc
         shell: bash
       - name: Generate scan results
         run: |
