@@ -826,8 +826,8 @@
          <li><a href="registry.redhat.io--ubi8--dotnet-60-runtime-with-updates.html">registry.redhat.io/ubi8/dotnet-60-runtime</a></li>
          </ul></td></tr>
          <tr><td>Apps</td><td><ul>
-         <li><a href="registry.redhat.io--ocp-tools-4--jenkins-rhel8--v4.12.0-1723557810-with-updates">registry.redhat.io/ocp-tools-4/jenkins-rhel8:v4.12.0-1723557810</a></li>
-         <li><a href="registry.redhat.io--ocp-tools-4--jenkins-rhel8--v4.14.0-1725667424-with-updates">registry.redhat.io/ocp-tools-4/jenkins-rhel8:v4.14.0-1725667424</a></li>
+         <!-- <li><a href="registry.redhat.io--ocp-tools-4--jenkins-rhel8--v4.12.0-1723557810-with-updates">registry.redhat.io/ocp-tools-4/jenkins-rhel8:v4.12.0-1723557810</a></li>
+         <li><a href="registry.redhat.io--ocp-tools-4--jenkins-rhel8--v4.14.0-1725667424-with-updates">registry.redhat.io/ocp-tools-4/jenkins-rhel8:v4.14.0-1725667424</a></li> -->
          <li><a href="registry.redhat.io--ansible-automation-platform-24--ee-supported-rhel8-with-updates">registry.redhat.io/ansible-automation-platform-24/ee-supported-rhel8</a></li>
          </ul></td></tr></tbody></table>
          </page-template>
