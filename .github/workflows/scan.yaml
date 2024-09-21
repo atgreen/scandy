@@ -24,11 +24,8 @@ jobs:
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v5
-      - name: Install scanning tools
-        run: |
-          wget https://github.com/aquasecurity/trivy/releases/download/v0.52.1/trivy_0.52.1_Linux-64bit.deb
-          sudo dpkg -i trivy_0.52.1_Linux-64bit.deb
-          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sudo sh -s -- -b /usr/local/bin
+      - name: Install tools
+        run: brew install trivy grype ocicl sqlite
         shell: bash
       - name: Generate scan results
         run: |

@@ -45,10 +45,6 @@ function grype_scan {
     grype -o json=${1}/grype/${IMG}.json ${2}
 }
 
-sudo apt update
-sudo apt install sqlite3 libsqlite3-dev
-brew install ocicl
-
 # Clone the github advisory database
 git clone --depth=1  https://github.com/github/advisory-database.git
 
