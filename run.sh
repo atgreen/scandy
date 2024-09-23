@@ -15,7 +15,7 @@ function retry_command {
     local -r cmd="$@"
     local -i attempt=0
     local -i max_attempts=5
-    local -i sleep_time=1  # Initial backoff delay in seconds
+    local -i sleep_time=5  # Initial backoff delay in seconds
 
     until $cmd; do
         attempt+=1
@@ -34,7 +34,7 @@ function trivy_scan {
     IMG=$(echo ${2} | sed 's/\//\-\-/g')
     IMG=$(echo ${IMG} | sed 's/:/\-\-/g')
     mkdir -p ${1}/trivy
-    trivy -f json -o ${1}/trivy/${IMG}.json image ${2}
+    retry_command trivy -f json -o ${1}/trivy/${IMG}.json image ${2}
 }
 
 function grype_scan {
@@ -42,7 +42,7 @@ function grype_scan {
     IMG=$(echo ${2} | sed 's/\//\-\-/g')
     IMG=$(echo ${IMG} | sed 's/:/\-\-/g')
     mkdir -p ${1}/grype
-    grype -o json=${1}/grype/${IMG}.json ${2}
+    retry_command grype -o json=${1}/grype/${IMG}.json ${2}
 }
 
 # Clone the github advisory database
