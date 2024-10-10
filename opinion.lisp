@@ -41,6 +41,12 @@
      '("False Positive"
        "This is a false positive.  This CVE was fixed in the EAP 4.7.18 security advisory update <a href=\"https://access.redhat.com/errata/RHSA-2024:5144\">https://access.redhat.com/errata/RHSA-2024:5144</a>."))
 
+    ((and (string= cve "CVE-2024-47561")
+          (equal locations '("/opt/jboss/container/wildfly/s2i/galleon/galleon-m2-repository/org/apache/avro/avro/1.11.3.redhat-00001/avro-1.11.3.redhat-00001.jar"
+			     "org.apache.avro:avro-1.11.3.redhat-00001")))
+     '("False Positive"
+       "This is a false positive.  This CVE was fixed in the security advisory update <a href=\"https://access.redhat.com/errata/RHSA-2024:7811\">https://access.redhat.com/errata/RHSA-2024:7811</a>."))
+
     ((and (string= cve "CVE-2024-6345")
           (equal locations '("/opt/app-root/lib/python3.11/site-packages/setuptools-65.5.1.dist-info/METADATA"
                              "python3-setuptools-53.0.0-12.el9_4.1"
