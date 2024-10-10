@@ -133,6 +133,34 @@ include moby's vulnerable authorization plugin code, therefore
 exception policy for this CVE as it relates to the <code>oc</code>
 command."))
 
+    ((and (or (string= cve "CVE-2024-43483")
+	      (string= cve "CVE-2024-43484")
+	      (string= cve "CVE-2024-43485"))
+          (or (string= image "registry.redhat.io/ubi8/dotnet-60")
+              (string= image "registry.redhat.io/ubi8/dotnet-60-runtime")))
+     '("False Positive"
+       "This is a false positive.  This CVE was addressed in <a href=\"https://access.redhat.com/errata/RHSA-2024:7851\">RHSA-2024:7851</a>."))
+
+    ((and (string= cve "CVE-2024-38229")
+          (or (string= image "registry.redhat.io/ubi8/dotnet-60")
+              (string= image "registry.redhat.io/ubi8/dotnet-60-runtime")))
+     '("False Positive"
+       "This is a false positive.  This image is not affected by this vulnerability."))
+
+    ((and (or (string= cve "CVE-2024-43483")
+	      (string= cve "CVE-2024-43484")
+	      (string= cve "CVE-2024-43485"))
+          (or (string= image "registry.redhat.io/ubi8/dotnet-80")
+              (string= image "registry.redhat.io/ubi8/dotnet-80-runtime")))
+     '("False Positive"
+       "This is a false positive.  This CVE was addressed in <a href=\"https://access.redhat.com/errata/RHSA-2024:7868\">RHSA-2024:7868</a>."))
+
+    ((and (string= cve "CVE-2024-38229")
+          (or (string= image "registry.redhat.io/ubi8/dotnet-80")
+              (string= image "registry.redhat.io/ubi8/dotnet-80-runtime")))
+     '("False Positive"
+       "This is a false positive.  CVE-2024-38229 was addressed in <a href=\"https://access.redhat.com/errata/RHSA-2024:7868\">RHSA-2024:7868</a>."))
+
     ((and (string= cve "CVE-2024-0057")
           (string= image "registry.redhat.io/ubi8/dotnet-80"))
      '("False Positive"
