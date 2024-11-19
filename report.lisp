@@ -789,7 +789,7 @@
          <td>
          <ul>
          <li><a href="registry.access.redhat.com--ubi8-with-updates.html">registry.access.redhat.com/ubi8</a></li>
-         <!-- <li><a href="registry.access.redhat.com--ubi9-with-updates.html">registry.access.redhat.com/ubi9</a></li> -->
+         <li><a href="registry.access.redhat.com--ubi9-with-updates.html">registry.access.redhat.com/ubi9</a></li>
          <li><a href="registry.access.redhat.com--ubi9-minimal-with-updates.html">registry.access.redhat.com/ubi9-minimal </a></li>
          <li><a href="registry.access.redhat.com--ubi8-minimal-with-updates.html">registry.access.redhat.com/ubi8-minimal </a></li>
          <li><a href="registry.access.redhat.com--ubi9-micro-with-updates.html">registry.access.redhat.com/ubi9-micro </a></li>
@@ -803,10 +803,10 @@
          <li><a href="registry.redhat.io--ubi8--openjdk-21-runtime-with-updates">registry.redhat.io/ubi8/openjdk-21-runtime</a></li>
          <li><a href="registry.redhat.io--ubi9--openjdk-21-runtime-with-updates">registry.redhat.io/ubi9/openjdk-21-runtime</a></li>
          </ul></td></tr>
-         <-- <tr><td>NodeJS</td><td><ul>
+         <tr><td>NodeJS</td><td><ul>
          <li><a href="registry.access.redhat.com--ubi9--nodejs-18-with-updates">registry.access.redhat.com/ubi9/nodejs-18</a></li>
          <li><a href="registry.access.redhat.com--ubi9--nodejs-20-with-updates">registry.access.redhat.com/ubi9/nodejs-20</a></li>
-         </ul></td></tr> -->
+         </ul></td></tr>
          <tr><td>Python</td><td><ul>
          <li><a href="registry.access.redhat.com--ubi8--python-39-with-updates.html">registry.access.redhat.com/ubi8/python-39</a></li>
          <li><a href="registry.access.redhat.com--ubi8--python-311-with-updates.html">registry.access.redhat.com/ubi8/python-311</a></li>
@@ -826,8 +826,8 @@
          <li><a href="registry.redhat.io--ubi8--dotnet-60-runtime-with-updates.html">registry.redhat.io/ubi8/dotnet-60-runtime</a></li>
          </ul></td></tr>
          <tr><td>Apps</td><td><ul>
-         <!-- <li><a href="registry.redhat.io--ocp-tools-4--jenkins-rhel8--v4.12.0-1723557810-with-updates">registry.redhat.io/ocp-tools-4/jenkins-rhel8:v4.12.0-1723557810</a></li>
-         <li><a href="registry.redhat.io--ocp-tools-4--jenkins-rhel8--v4.14.0-1725667424-with-updates">registry.redhat.io/ocp-tools-4/jenkins-rhel8:v4.14.0-1725667424</a></li> -->
+         <li><a href="registry.redhat.io--ocp-tools-4--jenkins-rhel8--v4.12.0-1723557810-with-updates">registry.redhat.io/ocp-tools-4/jenkins-rhel8:v4.12.0-1723557810</a></li>
+         <li><a href="registry.redhat.io--ocp-tools-4--jenkins-rhel8--v4.14.0-1725667424-with-updates">registry.redhat.io/ocp-tools-4/jenkins-rhel8:v4.14.0-1725667424</a></li>
          <li><a href="registry.redhat.io--ansible-automation-platform-24--ee-supported-rhel8-with-updates">registry.redhat.io/ansible-automation-platform-24/ee-supported-rhel8</a></li>
          </ul></td></tr></tbody></table>
          </page-template>
