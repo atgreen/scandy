@@ -48,8 +48,9 @@ function grype_scan {
 # Clone the github advisory database
 git clone --depth=1  https://github.com/github/advisory-database.git
 
+# registry.redhat.io/ocp-tools-4/jenkins-rhel8:v4.14.0-1725667424
+
 for IMAGE in     registry.redhat.io/ocp-tools-4/jenkins-rhel8:v4.12.0-1723557810 \
-                 registry.redhat.io/ocp-tools-4/jenkins-rhel8:v4.14.0-1725667424 \
                  registry.access.redhat.com/ubi9 \
                  registry.access.redhat.com/ubi9/nodejs-18 \
                  registry.access.redhat.com/ubi9/nodejs-20 \
