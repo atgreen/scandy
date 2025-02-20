@@ -27,6 +27,10 @@ jobs:
       - name: Install tools
         run: brew install trivy grype ocicl sqlite oras && ocicl setup > ~/.sbclrc && ocicl install
         shell: bash
+      - name: Emulate Docker CLI with Podman
+        uses: k8s-crafts/podman-cli-action@v1
+        with:
+          podman_api: true
       - name: Generate scan results
         run: |
           echo ${{ github.token }} | oras login ghcr.io -u ${{ github.actor }} --password-stdin
