@@ -2,7 +2,7 @@
 ;;;
 ;;; SPDX-License-Identifier: MIT
 ;;;
-;;; Copyright (C) 2024  Anthony Green <green@moxielogic.com>
+;;; Copyright (C) 2024, 2025  Anthony Green <green@moxielogic.com>
 ;;;
 ;;; Permission is hereby granted, free of charge, to any person obtaining a copy
 ;;; of this software and associated documentation files (the "Software"), to deal
@@ -790,10 +790,13 @@
          <ul>
          <li><a href="registry.access.redhat.com--ubi8-with-updates.html">registry.access.redhat.com/ubi8</a></li>
          <li><a href="registry.access.redhat.com--ubi9-with-updates.html">registry.access.redhat.com/ubi9</a></li>
-         <li><a href="registry.access.redhat.com--ubi9-minimal-with-updates.html">registry.access.redhat.com/ubi9-minimal </a></li>
+         <li><a href="registry.access.redhat.com--ubi10-with-updates.html">registry.access.redhat.com/ubi10</a></li>
          <li><a href="registry.access.redhat.com--ubi8-minimal-with-updates.html">registry.access.redhat.com/ubi8-minimal </a></li>
-         <li><a href="registry.access.redhat.com--ubi9-micro-with-updates.html">registry.access.redhat.com/ubi9-micro </a></li>
+         <li><a href="registry.access.redhat.com--ubi9-minimal-with-updates.html">registry.access.redhat.com/ubi9-minimal </a></li>
+         <li><a href="registry.access.redhat.com--ubi10-minimal-with-updates.html">registry.access.redhat.com/ubi10-minimal </a></li>
          <li><a href="registry.access.redhat.com--ubi8-micro-with-updates.html">registry.access.redhat.com/ubi8-micro </a></li>
+         <li><a href="registry.access.redhat.com--ubi9-micro-with-updates.html">registry.access.redhat.com/ubi9-micro </a></li>
+         <li><a href="registry.access.redhat.com--ubi10-micro-with-updates.html">registry.access.redhat.com/ubi10-micro </a></li>
          </ul></td></tr>
          <tr><td>OpenJDK</td><td><ul>
          <li><a href="registry.access.redhat.com--ubi8--openjdk-8-with-updates">registry.access.redhat.com/ubi8/openjdk-8</a></li>
@@ -826,7 +829,6 @@
          <li><a href="registry.redhat.io--ubi8--dotnet-60-runtime-with-updates.html">registry.redhat.io/ubi8/dotnet-60-runtime</a></li>
          </ul></td></tr>
          <tr><td>Apps</td><td><ul>
-         <li><a href="registry.redhat.io--ocp-tools-4--jenkins-rhel8--v4.12.0-1723557810-with-updates">registry.redhat.io/ocp-tools-4/jenkins-rhel8:v4.12.0-1723557810</a></li>
          <li><a href="registry.redhat.io--ocp-tools-4--jenkins-rhel8--v4.14.0-1725667424-with-updates">registry.redhat.io/ocp-tools-4/jenkins-rhel8:v4.14.0-1725667424</a></li>
          <li><a href="registry.redhat.io--ansible-automation-platform-24--ee-supported-rhel8-with-updates">registry.redhat.io/ansible-automation-platform-24/ee-supported-rhel8</a></li>
          </ul></td></tr></tbody></table>

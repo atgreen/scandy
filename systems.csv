@@ -106,3 +106,9 @@ sqlite-tests, ghcr.io/ocicl/sqlite@sha256:a7f80757e6ee13af06e2eeaeff1e079dba439d
 3bmd-ext-code-blocks, ghcr.io/ocicl/3bmd@sha256:ad81b1821771b9e354cdc9a1514186f2f3316341614ffaccb4974b85ad521370, 3bmd-20240515-0a54e65/3bmd-ext-code-blocks.asd
 esrap, ghcr.io/ocicl/esrap@sha256:0d49d836fc823e6e369e03dcdab3c6cfd04dfe0eaaf8dabbee96865bb856713f, esrap-20240514-d9d4100/esrap.asd
 trivial-with-current-source-form, ghcr.io/ocicl/trivial-with-current-source-form@sha256:955baad39fb52d9d02af21ea36442c9675419c2486392279f669ada9788f3e3b, trivial-with-current-source-form-20240503-dc3fff9/trivial-with-current-source-form.asd
+asdf-package-system, ghcr.io/ocicl/asdf-package-system@sha256:dfacc260786f4e9e2aa13a797a7b326b58e08ea5db778421a9985b9c67362df1, asdf-package-system-20240503-61776f2/asdf-package-system.asd
+cl-yaml, ghcr.io/ocicl/cl-yaml@sha256:4a64879b5bcdf3a47ca0adb23ad1c4d4d1da410ab8d8472018f9dd54b0b7e6b3, cl-yaml-20240503-049fe70/cl-yaml.asd
+cl-yaml-test, ghcr.io/ocicl/cl-yaml@sha256:4a64879b5bcdf3a47ca0adb23ad1c4d4d1da410ab8d8472018f9dd54b0b7e6b3, cl-yaml-20240503-049fe70/cl-yaml-test.asd
+cl-libyaml, ghcr.io/ocicl/cl-libyaml@sha256:d193dc306a73c8938dca3dd494280201c9e0d056299907cffc775cee9dff225c, cl-libyaml-20240503-a7fe9f6/cl-libyaml.asd
+cl-libyaml-test, ghcr.io/ocicl/cl-libyaml@sha256:d193dc306a73c8938dca3dd494280201c9e0d056299907cffc775cee9dff225c, cl-libyaml-20240503-a7fe9f6/cl-libyaml-test.asd
+parse-number, ghcr.io/ocicl/parse-number@sha256:11f3f9f512871e1f96cea6b8260aa3610e34e8fd7272bbcdb210fd3c5dd8025c, parse-number-20240503-cb9e487/parse-number.asd
